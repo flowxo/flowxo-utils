@@ -1,0 +1,35 @@
+{
+  "name": "flowxo-utils",
+  "version": "1.0.0",
+  "description": "Common utilities for the Flow XO core and SDK.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "./node_modules/jasmine/bin/jasmine.js"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flowxo/flowxo-utils.git"
+  },
+  "keywords": [
+    "flowxo"
+  ],
+  "author": {
+    "name": "Tom Spencer",
+    "email": "fiznool@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flowxo/flowxo-utils/issues"
+  },
+  "homepage": "https://github.com/flowxo/flowxo-utils",
+  "devDependencies": {
+    "jasmine": "^2.2.1"
+  },
+  "dependencies": {
+    "lodash": "^3.6.0",
+    "sugar-date": "^1.5.1"
+  }
+}
