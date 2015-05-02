@@ -104,6 +104,19 @@ describe('Utils', function() {
       expect(actual).toBe(0);
     });
 
+    it('should return null if the property is null', function() {
+      var data = {
+        some: {
+          flattened: {
+            key: null
+          }
+        }
+      };
+
+      var actual = Utils.getFlattenedValue(data, 'some__flattened__key');
+      expect(actual).toBe(null);
+    });
+
     it('should return undefined if the property is undefined', function() {
       var data = {
         some: {
@@ -128,10 +141,21 @@ describe('Utils', function() {
       expect(actual).toBe(undefined);
     });
 
+    it('should return null if the object is null', function() {
+      var data = {
+        some: {
+          flattened: null
+        }
+      };
+
+      var actual = Utils.getFlattenedValue(data, 'some__flattened__key');
+      expect(actual).toBe(null);
+    });
+
     it('should return undefined if the object is undefined', function() {
       var data;
 
-      var actual = Utils.getFlattenedValue(data, 'some.incorrect');
+      var actual = Utils.getFlattenedValue(data, 'some__incorrect');
       expect(actual).toBe(undefined);
     });
   });
