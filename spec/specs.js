@@ -200,7 +200,7 @@ describe('Utils', function() {
     });
   });
 
-  describe('Get Flattened Paths', function() {
+  describe('Get Flattened Fields', function() {
     it('should return flattened fields for an object', function() {
       var data = {
         some: {
@@ -231,6 +231,64 @@ describe('Utils', function() {
         label: 'Some 0 key',
         value: 'value'
       }]);
+    });
+
+    it('should return flattened fields for an object with a custom delimiter', function() {
+      var data = {
+        some: {
+          nested: {
+            key: 'value'
+          }
+        }
+      };
+
+      var actual = Utils.getFlattenedFields(data, { delimiter: '.' });
+
+      expect(actual).toEqual([{
+        key: 'some.nested.key',
+        label: 'Some nested key',
+        value: 'value'
+      }]);
+    });
+
+    it('should return an empty array if an empty object was passed in', function() {
+      var actual = Utils.getFlattenedFields({});
+      expect(actual).toEqual([]);
+    });
+
+    it('should return an empty array if an object was not passed in', function() {
+      var actual = Utils.getFlattenedFields(null);
+      expect(actual).toEqual([]);
+    });
+
+    it('should return a hashmap if specified', function() {
+      var data = {
+        some: {
+          nested: {
+            key: 'value'
+          }
+        }
+      };
+
+      var actual = Utils.getFlattenedFields(data, { idx: true });
+
+      expect(actual).toEqual({
+        'some__nested__key': {
+          key: 'some__nested__key',
+          label: 'Some nested key',
+          value: 'value'
+        }
+      });
+    });
+
+    it('should return an empty hashmap if an empty object was passed in', function() {
+      var actual = Utils.getFlattenedFields({}, { idx: true });
+      expect(actual).toEqual({});
+    });
+
+    it('should return an empty hashmap if an object was not passed in', function() {
+      var actual = Utils.getFlattenedFields(null, { idx: true });
+      expect(actual).toEqual({});
     });
 
     it('should produce a field if an object key is a number', function() {
@@ -461,7 +519,7 @@ describe('Utils', function() {
     });
   });
 
-    describe('Parse Date Time Field', function() {
+  describe('Parse Date Time Field', function() {
     var epoch;
 
     var expectValidDate = function(input, expected) {
@@ -715,6 +773,305 @@ describe('Utils', function() {
       expectInvalidBoolean({});
       expectInvalidBoolean([]);
       expectInvalidBoolean(/^$/);
+    });
+  });
+
+  describe('Annotate Script Input Data', function() {
+    var methodFields;
+
+    beforeEach(function() {
+      methodFields = [{
+        key: 'field',
+        label: 'Field'
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field'
+      }];
+    });
+
+    it('should return an empty array if the method fields are null', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      methodFields = null;
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
+    });
+
+    it('should return an empty array if the method fields are empty', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      methodFields = [];
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
+    });
+
+    it('should annotate data using labels from method fields', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: 'Value'
+      }]);
+    });
+
+    it('should include empty fields if required', function() {
+      var annotate = function(scriptData) {
+        return Utils.annotateInputData(scriptData, methodFields, {
+          includeEmptyFields: true
+        });
+      };
+
+      expect(annotate({})).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: undefined
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: undefined })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: undefined
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: null })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: null
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: '' })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: ''
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+    });
+
+    it('should discard empty fields if required', function() {
+      var annotate = function(scriptData) {
+        return Utils.annotateInputData(scriptData, methodFields, {
+          includeEmptyFields: false
+        });
+      };
+
+      expect(annotate({})).toEqual([]);
+      expect(annotate({ field: undefined })).toEqual([]);
+      expect(annotate({ field: null })).toEqual([]);
+      expect(annotate({ field: '' })).toEqual([]);
+    });
+
+    it('should annotate a datetime field', function() {
+      var scriptData = {
+        field: {
+          type: 'date',
+          input: 'today',
+          valid: true,
+          parsed: new Date()
+        }
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: 'today'
+      }]);
+    });
+
+    it('should annotate a boolean field', function() {
+      var scriptData = {
+        field: {
+          type: 'boolean',
+          input: 'yes',
+          valid: true,
+          parsed: true
+        }
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: 'yes'
+      }]);
+    });
+
+    it('should annotate a select field', function() {
+      methodFields[0].input_options = [{
+        label: 'Option',
+        value: 'option'
+      }];
+
+      var scriptData = {
+        field: 'option'
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: 'Option'
+      }]);
+    });
+  });
+
+  describe('Annotate Script Output Data', function() {
+    var methodFields;
+
+    beforeEach(function() {
+      methodFields = [{
+        key: 'field',
+        label: 'Field'
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field'
+      }];
+    });
+
+    it('should return an empty array if the method fields are undefined', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      methodFields = null;
+
+      var actual = Utils.annotateOutputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
+    });
+
+    it('should return an empty array if the method fields are empty', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      methodFields = [];
+
+      var actual = Utils.annotateOutputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
+    });
+
+    it('should annotate data using labels from method fields', function() {
+      var scriptData = {
+        field: 'Value'
+      };
+
+      var actual = Utils.annotateOutputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: 'Value'
+      }]);
+    });
+
+    it('should annotate nested data using labels from method fields', function() {
+      var scriptData = {
+        nested: {
+          field: 'Value'
+        }
+      };
+
+      var actual = Utils.annotateOutputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: 'Value'
+      }]);
+    });
+
+    it('should include empty fields if required', function() {
+      var annotate = function(scriptData) {
+        return Utils.annotateOutputData(scriptData, methodFields, {
+          includeEmptyFields: true
+        });
+      };
+
+      expect(annotate({})).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: undefined
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: undefined })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: undefined
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: null })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: null
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+
+      expect(annotate({ field: '' })).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: ''
+      }, {
+        key: 'nested__field',
+        label: 'Nested Field',
+        value: undefined
+      }]);
+    });
+
+    it('should discard empty fields if required', function() {
+      var annotate = function(scriptData) {
+        return Utils.annotateOutputData(scriptData, methodFields, {
+          includeEmptyFields: false
+        });
+      };
+
+      expect(annotate({})).toEqual([]);
+      expect(annotate({ field: undefined })).toEqual([]);
+      expect(annotate({ field: null })).toEqual([]);
+      expect(annotate({ field: '' })).toEqual([]);
     });
   });
 });
