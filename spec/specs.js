@@ -316,6 +316,40 @@ describe('Utils', function() {
         value: 'property'
       }]);
     });
+
+    it('should support objects with a length property', function() {
+      var data = {
+        some: 'data',
+        length: 10,
+        and: {
+          more: {
+            nested: 'data',
+            length: {
+              deeply: 'nested'
+            }
+          }
+        }
+      };
+
+      var actual = Utils.getFlattenedFields(data);
+      expect(actual).toEqual([{
+        key: 'some',
+        label: 'Some',
+        value: 'data'
+      }, {
+        key: 'length',
+        label: 'Length',
+        value: 10
+      }, {
+        key: 'and__more__nested',
+        label: 'And more nested',
+        value: 'data'
+      }, {
+        key: 'and__more__length__deeply',
+        label: 'And more length deeply',
+        value: 'nested'
+      }]);
+    });
   });
 
   describe('Clone Terse', function() {
