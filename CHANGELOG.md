@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2016-01-13
+### Fixed
+- Fixed issue when getting flattened fields for an object with a `length` property.
+
 ## [1.1.0] - 2015-09-22
 ### Added
 - Added functions to label I/O data.
@@ -14,5 +18,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.1.1]: https://github.com/flowxo/flowxo-utils/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/flowxo/flowxo-utils/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/flowxo/flowxo-utils/compare/v1.0.0...v1.0.1
