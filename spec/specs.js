@@ -766,6 +766,10 @@ describe('Utils', function() {
         expectTrue('yes');
       });
 
+      it('should return `true` if `y` is passed', function() {
+        expectTrue('y');
+      });
+
       it('should return `true` if `1` is passed', function() {
         expectTrue('1');
       });
@@ -776,6 +780,10 @@ describe('Utils', function() {
 
       it('should return `false` if `no` is passed', function() {
         expectFalse('no');
+      });
+
+      it('should return `false` if `n` is passed', function() {
+        expectFalse('n');
       });
 
       it('should return `false` if `0` is passed', function() {
@@ -795,10 +803,12 @@ describe('Utils', function() {
         expectTrue('TRUE');
         expectTrue('True');
         expectTrue('yEs');
+        expectTrue('Y');
         expectFalse('FalsE');
         expectFalse('FALSE');
         expectFalse('No');
         expectFalse('NO');
+        expectFalse('N');
       });
     });
 
