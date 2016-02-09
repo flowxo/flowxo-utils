@@ -933,9 +933,10 @@ describe('Utils', function() {
     });
 
     it('should annotate a datetime field', function() {
+      methodFields[0].type = 'datetime';
       var scriptData = {
         field: {
-          type: 'date',
+          type: 'datetime',
           input: 'today',
           valid: true,
           parsed: new Date()
@@ -952,6 +953,7 @@ describe('Utils', function() {
     });
 
     it('should annotate a boolean field', function() {
+      methodFields[0].type = 'boolean';
       var scriptData = {
         field: {
           type: 'boolean',
@@ -971,6 +973,7 @@ describe('Utils', function() {
     });
 
     it('should annotate a select field', function() {
+      methodFields[0].type = 'select';
       methodFields[0].input_options = [{
         label: 'Option',
         value: 'option'
@@ -986,6 +989,24 @@ describe('Utils', function() {
         key: 'field',
         label: 'Field',
         value: 'Option'
+      }]);
+    });
+
+    it('should annotate a dictionary field', function() {
+      methodFields[0].type = 'dictionary';
+      var scriptData = {
+        field: {
+          key1: 'value1',
+          key2: 'value2'
+        }
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([{
+        key: 'field',
+        label: 'Field',
+        value: '{\n  "key1": "value1",\n  "key2": "value2"\n}'
       }]);
     });
   });
