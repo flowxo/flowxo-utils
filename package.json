@@ -26,10 +26,10 @@
   },
   "homepage": "https://github.com/flowxo/flowxo-utils",
   "devDependencies": {
-    "jasmine": "^2.3.2"
+    "jasmine": "^2.4.1"
   },
   "dependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.3.0",
     "sugar-date": "^1.5.1"
   }
 }
