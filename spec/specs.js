@@ -952,6 +952,17 @@ describe('Utils', function() {
       }]);
     });
 
+    it('should handle a non-existant datetime value', function() {
+      methodFields[0].type = 'datetime';
+      var scriptData = {
+        field: null
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
+    });
+
     it('should annotate a boolean field', function() {
       methodFields[0].type = 'boolean';
       var scriptData = {
@@ -970,6 +981,17 @@ describe('Utils', function() {
         label: 'Field',
         value: 'yes'
       }]);
+    });
+
+    it('should handle a non-existant boolean value', function() {
+      methodFields[0].type = 'boolean';
+      var scriptData = {
+        field: null
+      };
+
+      var actual = Utils.annotateInputData(scriptData, methodFields);
+
+      expect(actual).toEqual([]);
     });
 
     it('should annotate a select field', function() {
