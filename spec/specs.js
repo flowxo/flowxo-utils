@@ -674,6 +674,10 @@ describe('Utils', function() {
         expectValidDate('now +40h -40h', new Date(0));
       });
 
+      it('should parse a complex offset modifier #6', function() {
+        expectValidDate('+40h now - 40h', new Date(0));
+      });
+
       it('shouldn\'t allow two consecutive offset operators', function() {
         expectInvalidDate('tomorrow++1d');
       });
