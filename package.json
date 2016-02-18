@@ -4,7 +4,7 @@
   "description": "Common utilities for the Flow XO core and SDK.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "./node_modules/jasmine/bin/jasmine.js"
+    "test": "jasmine"
   },
   "engines": {
     "node": ">=0.10.0"
