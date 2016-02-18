@@ -674,18 +674,42 @@ describe('Utils', function() {
         expectValidDate('now +40h -40h', new Date(0));
       });
 
-      it('should allow arbitrary whitespace before a offset modifier', function() {
+      it('shouldn\'t allow two consecutive offset operators', function() {
+        expectInvalidDate('tomorrow++1d');
+      });
+
+      it('shouldn\'t allow two consecutive offset operators separated by whitespace', function() {
+        expectInvalidDate('tomorrow+ +1d');
+      });
+
+      it('should allow no whitespace before and after an offset modifier', function() {
+        expectValidDate('tomorrow+1d', new Date(86400000));
+      });
+
+      it('should allow one space before an offset modifier', function() {
+        expectValidDate('tomorrow +1d', new Date(86400000));
+      });
+
+      it('should allow one space after an offset modifier', function() {
+        expectValidDate('tomorrow+ 1d', new Date(86400000));
+      });
+
+      it('should allow one space before and after an offset modifier', function() {
+        expectValidDate('tomorrow + 1d', new Date(86400000));
+      });
+
+      it('should allow arbitrary whitespace before an offset modifier', function() {
         expectValidDate('tomorrow      +1d', new Date(86400000));
+      });
+
+      it('should allow arbitrary whitespace after an offset modifier', function() {
+        expectValidDate('tomorrow+      1d', new Date(86400000));
       });
 
       it('should start from the current date if offset modifiers are only present', function() {
         spyOn(Utils, '_getCurrentDate')
           .and.returnValue(new Date(0));
         expectValidDate('+1d', new Date(86400000));
-      });
-
-      it('should ignore a offset modifier if it is not preceded by a space', function() {
-        expectInvalidDate('tomorrow+1d');
       });
 
       it('should not apply the offset modifier if it is 0', function() {
