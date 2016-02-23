@@ -730,6 +730,32 @@ describe('Utils', function() {
         expect(epoch.addSeconds)
           .not.toHaveBeenCalled();
       });
+
+      describe('Timezone offsets', function() {
+        it('should work with the YYYY-MM-DD HH-mmZ format', function() {
+          expectValidDate('2013-02-08 09:30+07:00', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HH-mmZZ format', function() {
+          expectValidDate('2013-02-08 09:30-0100', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z', function() {
+          expectValidDate('2013-02-08 09Z', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format', function() {
+          expectValidDate('2013-02-08 09:30:26.123+07:00', epoch);
+        });
+
+        it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format', function() {
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430', epoch);
+        });
+
+        it('should work with the YYYY-MM-DDTHH:mm:ssZZ format', function() {
+          expectValidDate('1995-12-25T13:30:00+0430', epoch);
+        });
+      });
     });
   });
 
