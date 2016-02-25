@@ -755,6 +755,30 @@ describe('Utils', function() {
         it('should work with the YYYY-MM-DDTHH:mm:ssZZ format', function() {
           expectValidDate('1995-12-25T13:30:00+0430', epoch);
         });
+
+        it('should work with the YYYY-MM-DD HH-mmZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30+07:00 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HH-mmZZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30-0100 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z and modifiers', function() {
+          expectValidDate('2013-02-08 09Z +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30:26.123+07:00 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format and modifiers', function() {
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DDTHH:mm:ssZZ format and modifiers', function() {
+          expectValidDate('1995-12-25T13:30:00+0430 +1d - 12h', new Date(43200000));
+        });
       });
     });
   });
