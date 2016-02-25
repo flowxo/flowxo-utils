@@ -674,18 +674,46 @@ describe('Utils', function() {
         expectValidDate('now +40h -40h', new Date(0));
       });
 
-      it('should allow arbitrary whitespace before a offset modifier', function() {
+      it('should parse a complex offset modifier #6', function() {
+        expectValidDate('+40h now - 40h', new Date(0));
+      });
+
+      it('shouldn\'t allow two consecutive offset operators', function() {
+        expectInvalidDate('tomorrow++1d');
+      });
+
+      it('shouldn\'t allow two consecutive offset operators separated by whitespace', function() {
+        expectInvalidDate('tomorrow+ +1d');
+      });
+
+      it('should allow no whitespace before and after an offset modifier', function() {
+        expectValidDate('tomorrow+1d', new Date(86400000));
+      });
+
+      it('should allow one space before an offset modifier', function() {
+        expectValidDate('tomorrow +1d', new Date(86400000));
+      });
+
+      it('should allow one space after an offset modifier', function() {
+        expectValidDate('tomorrow+ 1d', new Date(86400000));
+      });
+
+      it('should allow one space before and after an offset modifier', function() {
+        expectValidDate('tomorrow + 1d', new Date(86400000));
+      });
+
+      it('should allow arbitrary whitespace before an offset modifier', function() {
         expectValidDate('tomorrow      +1d', new Date(86400000));
+      });
+
+      it('should allow arbitrary whitespace after an offset modifier', function() {
+        expectValidDate('tomorrow+      1d', new Date(86400000));
       });
 
       it('should start from the current date if offset modifiers are only present', function() {
         spyOn(Utils, '_getCurrentDate')
           .and.returnValue(new Date(0));
         expectValidDate('+1d', new Date(86400000));
-      });
-
-      it('should ignore a offset modifier if it is not preceded by a space', function() {
-        expectInvalidDate('tomorrow+1d');
       });
 
       it('should not apply the offset modifier if it is 0', function() {
@@ -701,6 +729,56 @@ describe('Utils', function() {
         Utils.parseDateTimeField('some_invalid_date +40h');
         expect(epoch.addSeconds)
           .not.toHaveBeenCalled();
+      });
+
+      describe('Timezone offsets', function() {
+        it('should work with the YYYY-MM-DD HH-mmZ format', function() {
+          expectValidDate('2013-02-08 09:30+07:00', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HH-mmZZ format', function() {
+          expectValidDate('2013-02-08 09:30-0100', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z', function() {
+          expectValidDate('2013-02-08 09Z', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format', function() {
+          expectValidDate('2013-02-08 09:30:26.123+07:00', epoch);
+        });
+
+        it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format', function() {
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430', epoch);
+        });
+
+        it('should work with the YYYY-MM-DDTHH:mm:ssZZ format', function() {
+          expectValidDate('1995-12-25T13:30:00+0430', epoch);
+        });
+
+        it('should work with the YYYY-MM-DD HH-mmZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30+07:00 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HH-mmZZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30-0100 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z and modifiers', function() {
+          expectValidDate('2013-02-08 09Z +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format and modifiers', function() {
+          expectValidDate('2013-02-08 09:30:26.123+07:00 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format and modifiers', function() {
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430 +1d - 12h', new Date(43200000));
+        });
+
+        it('should work with the YYYY-MM-DDTHH:mm:ssZZ format and modifiers', function() {
+          expectValidDate('1995-12-25T13:30:00+0430 +1d - 12h', new Date(43200000));
+        });
       });
     });
   });
