@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2016-02-25
+### Added
+- Allow offset modifiers for datetime parsing to be in the form `date + 90d` and `date+90d` as well as `date +90d`.
+
 ## [1.1.4] - 2016-02-10
 ### Fixed
 - Issues with `null` values for `datetime` or `boolean` inputs.
@@ -33,6 +37,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.2.0]: https://github.com/flowxo/flowxo-utils/compare/v1.1.4...v1.2.0
 [1.1.4]: https://github.com/flowxo/flowxo-utils/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/flowxo/flowxo-utils/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/flowxo/flowxo-utils/compare/v1.1.1...v1.1.2
