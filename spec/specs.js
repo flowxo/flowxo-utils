@@ -158,6 +158,80 @@ describe('Utils', function() {
       var actual = Utils.getFlattenedValue(data, 'some__incorrect');
       expect(actual).toBe(undefined);
     });
+
+    it('should get a flattened collection', function() {
+      var data = {
+        some: [{
+          key: 0
+        }, {
+          key: 1
+        }, {
+          key: 2
+        }]
+      };
+
+      var options = {
+        arrayFormatter: function() {
+          return 'array-formatted';
+        }
+      };
+
+      spyOn(options, 'arrayFormatter').and.callThrough();
+
+      var actual = Utils.getFlattenedValue(data, 'some_+_key', options);
+      expect(options.arrayFormatter)
+        .toHaveBeenCalledWith([ 'key' ], [{
+          key: 0
+        }, {
+          key: 1
+        }, {
+          key: 2
+        }]);
+      expect(actual).toBe('array-formatted');
+    });
+
+    it('should get a flattened multilevel collection', function() {
+      var data = {
+        some: [{
+          key: [{
+            id: 1
+          }, {
+            id: 2
+          }]
+        }, {
+          key: [{
+            id: 3
+          }, {
+            id: 4
+          }]
+        }]
+      };
+
+      var options = {
+        arrayFormatter: function() {
+          return 'array-formatted';
+        }
+      };
+
+      spyOn(options, 'arrayFormatter').and.callThrough();
+
+      var actual = Utils.getFlattenedValue(data, 'some_+_key_+_id', options);
+      expect(options.arrayFormatter)
+        .toHaveBeenCalledWith([ 'key', 'id' ], [{
+          key: [{
+            id: 1
+          }, {
+            id: 2
+          }]
+        }, {
+          key: [{
+            id: 3
+          }, {
+            id: 4
+          }]
+        }]);
+      expect(actual).toBe('array-formatted');
+    });
   });
 
   describe('Set Flattened Value', function() {
