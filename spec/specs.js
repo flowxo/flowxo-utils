@@ -186,7 +186,7 @@ describe('Utils', function() {
           key: 1
         }, {
           key: 2
-        }]);
+        }], []);
       expect(actual).toBe('array-formatted');
     });
 
@@ -229,7 +229,7 @@ describe('Utils', function() {
           }, {
             id: 4
           }]
-        }]);
+        }], []);
       expect(actual).toBe('array-formatted');
     });
   });
