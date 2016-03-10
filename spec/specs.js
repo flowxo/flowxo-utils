@@ -1,6 +1,7 @@
 'use strict';
 
-var Utils = require('../lib/index.js');
+var Utils = require('../lib/index.js'),
+    _ = require('lodash');
 
 describe('Utils', function() {
   it('should convert an array to a hashtable', function() {
@@ -158,6 +159,80 @@ describe('Utils', function() {
       var actual = Utils.getFlattenedValue(data, 'some__incorrect');
       expect(actual).toBe(undefined);
     });
+
+    it('should get a flattened collection', function() {
+      var data = {
+        some: [{
+          key: 0
+        }, {
+          key: 1
+        }, {
+          key: 2
+        }]
+      };
+
+      var options = {
+        arrayFormatter: function() {
+          return 'array-formatted';
+        }
+      };
+
+      spyOn(options, 'arrayFormatter').and.callThrough();
+
+      var actual = Utils.getFlattenedValue(data, 'some_+_key', options);
+      expect(options.arrayFormatter)
+        .toHaveBeenCalledWith([ 'key' ], [{
+          key: 0
+        }, {
+          key: 1
+        }, {
+          key: 2
+        }], []);
+      expect(actual).toBe('array-formatted');
+    });
+
+    it('should get a flattened multilevel collection', function() {
+      var data = {
+        some: [{
+          key: [{
+            id: 1
+          }, {
+            id: 2
+          }]
+        }, {
+          key: [{
+            id: 3
+          }, {
+            id: 4
+          }]
+        }]
+      };
+
+      var options = {
+        arrayFormatter: function() {
+          return 'array-formatted';
+        }
+      };
+
+      spyOn(options, 'arrayFormatter').and.callThrough();
+
+      var actual = Utils.getFlattenedValue(data, 'some_+_key_+_id', options);
+      expect(options.arrayFormatter)
+        .toHaveBeenCalledWith([ 'key', 'id' ], [{
+          key: [{
+            id: 1
+          }, {
+            id: 2
+          }]
+        }, {
+          key: [{
+            id: 3
+          }, {
+            id: 4
+          }]
+        }], []);
+      expect(actual).toBe('array-formatted');
+    });
   });
 
   describe('Set Flattened Value', function() {
@@ -201,6 +276,34 @@ describe('Utils', function() {
   });
 
   describe('Get Flattened Fields', function() {
+    var options;
+
+    // Set an array formatter for getting flattened collection fields
+    beforeEach(function() {
+      options = {
+        arrayFormatter: function(keys, data) {
+          if(!Array.isArray(data)) {
+            data = Object.keys(data)
+              .filter(function(key) {
+                return !isNaN(key);
+              })
+              .map(function(key) {
+                return data[key];
+              });
+          }
+          return data
+            .map(function(item) {
+              return _.reduce(keys, function(prev, key) {
+                if(prev) {
+                  return prev[key];
+                }
+                return null;
+              }, item);
+            });
+        }
+      };
+    });
+
     it('should return flattened fields for an object', function() {
       var data = {
         some: {
@@ -225,8 +328,12 @@ describe('Utils', function() {
         }]
       };
 
-      var actual = Utils.getFlattenedFields(data);
+      var actual = Utils.getFlattenedFields(data, options);
       expect(actual).toEqual([{
+        key: 'some_+_key',
+        label: 'Some key',
+        value: [ 'value' ]
+      }, {
         key: 'some__0__key',
         label: 'Some 0 key',
         value: 'value'
@@ -305,8 +412,12 @@ describe('Utils', function() {
         }
       };
 
-      var actual = Utils.getFlattenedFields(data);
+      var actual = Utils.getFlattenedFields(data, options);
       expect(actual).toEqual([{
+        key: 'some_+_key',
+        label: 'Some key',
+        value: [ 'value' ]
+      }, {
         key: 'some__0__key',
         label: 'Some 0 key',
         value: 'value'
