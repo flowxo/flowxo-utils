@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.0] - 2016-03-10
+### Added
+- Support for 'flattened collections'.
+
 ## [1.2.0] - 2016-02-25
 ### Added
 - Allow offset modifiers for datetime parsing to be in the form `date + 90d` and `date+90d` as well as `date +90d`.
@@ -37,6 +41,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.3.0]: https://github.com/flowxo/flowxo-utils/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/flowxo/flowxo-utils/compare/v1.1.4...v1.2.0
 [1.1.4]: https://github.com/flowxo/flowxo-utils/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/flowxo/flowxo-utils/compare/v1.1.2...v1.1.3
