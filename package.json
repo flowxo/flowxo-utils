@@ -29,7 +29,7 @@
     "jasmine": "^2.4.1"
   },
   "dependencies": {
-    "lodash": "^4.3.0",
+    "lodash": "^4.6.1",
     "sugar-date": "^1.5.1"
   }
 }
