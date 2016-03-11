@@ -461,6 +461,43 @@ describe('Utils', function() {
         value: 'nested'
       }]);
     });
+
+    it('should support collections', function() {
+      var data = {
+        some: [{
+          data: {
+            key: 1
+          }
+        }, {
+          data: {
+            key: 2
+          }
+        }]
+      };
+
+      var options = {
+        arrayFormatter: function() {
+          return {
+            key: 'array-formatted'
+          };
+        }
+      };
+
+      var actual = Utils.getFlattenedFields(data, options);
+      expect(actual).toEqual([{
+        key: 'some_+_data__key',
+        label: 'Some data key',
+        value: 'array-formatted'
+      }, {
+        key: 'some__0__data__key',
+        label: 'Some 0 data key',
+        value: 1
+      }, {
+        key: 'some__1__data__key',
+        label: 'Some 1 data key',
+        value: 2
+      }]);
+    });
   });
 
   describe('Clone Terse', function() {
