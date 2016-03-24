@@ -1,7 +1,7 @@
 {
   "name": "flowxo-utils",
-  "version": "1.3.1",
-  "description": "Common utilities for the Flow XO core and SDK.",
+  "version": "1.4.0",
+  "description": "Common utilities for Flow XO.",
   "main": "lib/index.js",
   "scripts": {
     "test": "jasmine"
