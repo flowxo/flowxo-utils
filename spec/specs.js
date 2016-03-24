@@ -1438,5 +1438,37 @@ describe('Utils', function() {
     });
   });
 
+  describe('Logger', function() {
+    beforeEach(function() {
+      spyOn(console, 'log');
+    });
 
+    it('should mimic the default winston logger', function() {
+      var logger = Utils.Logger;
+
+      logger.silly('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.debug('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.verbose('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.info('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.warn('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.error('some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.log('info', 'some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+
+      logger.log('error', 'some', 'data');
+      expect(console.log).toHaveBeenCalledWith('some', 'data');
+    });
+  });
 });
