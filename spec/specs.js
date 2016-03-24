@@ -1387,4 +1387,56 @@ describe('Utils', function() {
       expect(annotate({ field: '' })).toEqual([]);
     });
   });
+
+  describe('Backoff', function() {
+    it('should generate exponential backoff delays, limited by the maximum', function() {
+      var backoff = new Utils.Backoff(1000, 10000);
+      expect(backoff.nextDelay()).toBe(1000);
+      expect(backoff.nextDelay()).toBe(2000);
+      expect(backoff.nextDelay()).toBe(4000);
+      expect(backoff.nextDelay()).toBe(8000);
+      expect(backoff.nextDelay()).toBe(10000);
+      expect(backoff.nextDelay()).toBe(10000);
+    });
+
+    it('should randomise backoff delays', function() {
+      var backoff = new Utils.Backoff(1000, 10000);
+      expect(backoff.nextDelay()).toBeBetween(0, 1000);
+      expect(backoff.nextDelay()).toBeBetween(0, 2000);
+      expect(backoff.nextDelay()).toBeBetween(0, 4000);
+      expect(backoff.nextDelay()).toBeBetween(0, 8000);
+      expect(backoff.nextDelay()).toBeBetween(0, 10000);
+      expect(backoff.nextDelay()).toBeBetween(0, 10000);
+    });
+
+    it('should retry operation until it succeeds', function(done) {
+      var backoff = new Utils.Backoff(0, 10);
+      var attempts = 0;
+      backoff.attempt(3, function(done) {
+        attempts++;
+        done(attempts < 3 ? 'ERROR' : null, 'result1', 'result2');
+      }, function(err, res1, res2) {
+        expect(err).toBeNull();
+        expect(res1).toBe('result1');
+        expect(res2).toBe('result2');
+        expect(attempts).toBe(3);
+        done();
+      });
+    });
+
+    it('should retry operation until the maximum number of attempts has been reached', function(done) {
+      var backoff = new Utils.Backoff(0, 10);
+      var attempts = 0;
+      backoff.attempt(3, function(done) {
+        attempts++;
+        done('ERROR');
+      }, function(err) {
+        expect(err).toBe('ERROR');
+        expect(attempts).toBe(3);
+        done();
+      });
+    });
+  });
+
+
 });
