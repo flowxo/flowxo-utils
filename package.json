@@ -1,6 +1,6 @@
 {
   "name": "flowxo-utils",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Common utilities for Flow XO.",
   "main": "lib/index.js",
   "scripts": {

@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.1] - 2016-07-01
+### Added
+- hashToKeyValPairs utility function.
+- Code coverage with istanbul.
+
 ## [1.5.0] - 2016-03-24
 ### Added
 - Dumb console logger, with partial API compatibility with Winston.
@@ -53,6 +58,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.5.1]: https://github.com/flowxo/flowxo-utils/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/flowxo/flowxo-utils/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/flowxo/flowxo-utils/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/flowxo/flowxo-utils/compare/v1.3.0...v1.3.1
