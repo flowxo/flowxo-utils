@@ -525,8 +525,8 @@ describe('Utils', function() {
     it('should get flattened fields as an index', function() {
       spyOn(Utils, 'getFlattenedFields').and.returnValue('some_flattened_fields');
 
-      const data = 'data';
-      const options = {
+      var data = 'data';
+      var options = {
         delimiter: '..'
       };
 
@@ -541,8 +541,8 @@ describe('Utils', function() {
     it('should accept a string as the option', function() {
       spyOn(Utils, 'getFlattenedFields').and.returnValue('some_flattened_fields');
 
-      const data = 'data';
-      const delimiter = '..';
+      var data = 'data';
+      var delimiter = '..';
 
       var actual = Utils.getFlattenedFieldsIdx(data, delimiter);
       expect(actual).toBe('some_flattened_fields');
