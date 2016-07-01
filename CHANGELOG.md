@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.2] - 2016-07-01
+### Fixed
+- Reverted to ES5 syntax for node 0.10 and 0.12 compatibility.
+
 ## [1.5.1] - 2016-07-01
 ### Added
 - hashToKeyValPairs utility function.
@@ -58,6 +62,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.5.2]: https://github.com/flowxo/flowxo-utils/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/flowxo/flowxo-utils/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/flowxo/flowxo-utils/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/flowxo/flowxo-utils/compare/v1.3.1...v1.4.0
