@@ -22,4 +22,9 @@ jasmine.loadConfig({
     'helpers.js'
   ]
 });
+
+jasmine.onComplete(function(passed) {
+  process.exit(passed ? 0 : 1);
+});
+
 jasmine.execute();

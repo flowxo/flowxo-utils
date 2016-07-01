@@ -15,6 +15,27 @@ describe('Utils', function() {
     });
   });
 
+  describe('Hash to Key Value pairs', function() {
+    it('should convert a hashtable to an array of key-value pairs', function() {
+      var actual = Utils.hashToKeyValPairs({
+        one: 'two',
+        buckle: 'my shoe'
+      });
+      expect(actual).toEqual([{
+        key: 'one',
+        value: 'two'
+      }, {
+        key: 'buckle',
+        value: 'my shoe'
+      }]);
+    });
+
+    it('should return an empty array if the hashtable is not defined', function() {
+      var actual = Utils.hashToKeyValPairs();
+      expect(actual).toEqual([]);
+    });
+  });
+
   describe('Get Flattened Value', function() {
     it('should get a flattened property', function() {
       var data = {
