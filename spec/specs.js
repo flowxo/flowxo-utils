@@ -500,6 +500,38 @@ describe('Utils', function() {
     });
   });
 
+  describe('Get Flattened Fields Index', function() {
+    it('should get flattened fields as an index', function() {
+      spyOn(Utils, 'getFlattenedFields').and.returnValue('some_flattened_fields');
+
+      const data = 'data';
+      const options = {
+        delimiter: '..'
+      };
+
+      var actual = Utils.getFlattenedFieldsIdx(data, options);
+      expect(actual).toBe('some_flattened_fields');
+      expect(Utils.getFlattenedFields).toHaveBeenCalledWith('data', {
+        delimiter: '..',
+        idx: true
+      });
+    });
+
+    it('should accept a string as the option', function() {
+      spyOn(Utils, 'getFlattenedFields').and.returnValue('some_flattened_fields');
+
+      const data = 'data';
+      const delimiter = '..';
+
+      var actual = Utils.getFlattenedFieldsIdx(data, delimiter);
+      expect(actual).toBe('some_flattened_fields');
+      expect(Utils.getFlattenedFields).toHaveBeenCalledWith('data', {
+        delimiter: '..',
+        idx: true
+      });
+    });
+  });
+
   describe('Clone Terse', function() {
     var expectCloned = function(original, expected) {
       var cloned = Utils.cloneTerse(original);
@@ -1400,13 +1432,14 @@ describe('Utils', function() {
     });
 
     it('should randomise backoff delays', function() {
-      var backoff = new Utils.Backoff(1000, 10000);
+      spyOn(Math, 'random').and.returnValue(0.5);
+      var backoff = new Utils.Backoff(1000, 10000, true);
+      expect(backoff.nextDelay()).toBeBetween(0, 500);
       expect(backoff.nextDelay()).toBeBetween(0, 1000);
       expect(backoff.nextDelay()).toBeBetween(0, 2000);
       expect(backoff.nextDelay()).toBeBetween(0, 4000);
-      expect(backoff.nextDelay()).toBeBetween(0, 8000);
-      expect(backoff.nextDelay()).toBeBetween(0, 10000);
-      expect(backoff.nextDelay()).toBeBetween(0, 10000);
+      expect(backoff.nextDelay()).toBeBetween(0, 5000);
+      expect(backoff.nextDelay()).toBeBetween(0, 5000);
     });
 
     it('should retry operation until it succeeds', function(done) {

@@ -4,7 +4,12 @@
   "description": "Common utilities for Flow XO.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jasmine"
+    "lint": "jshint --exclude-path=.jshintignore --reporter=node_modules/jshint-stylish .",
+    "spec": "node spec/runner.js",
+    "spec:watch": "nodemon --exec npm run spec --silent",
+    "coverage": "istanbul cover spec/runner.js",
+    "view-coverage": "npm run coverage --silent && opn coverage/lcov-report/index.html",
+    "test": "npm run lint --silent && npm run coverage --silent && istanbul check-coverage"
   },
   "engines": {
     "node": ">=0.10.0"
@@ -26,7 +31,13 @@
   },
   "homepage": "https://github.com/flowxo/flowxo-utils",
   "devDependencies": {
-    "jasmine": "^2.4.1"
+    "istanbul": "0.4.3",
+    "jasmine": "^2.4.1",
+    "jasmine-spec-reporter": "2.5.0",
+    "jshint": "2.9.2",
+    "jshint-stylish": "2.2.0",
+    "nodemon": "1.9.2",
+    "opn-cli": "3.1.0"
   },
   "dependencies": {
     "lodash": "^4.6.1",
