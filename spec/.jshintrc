@@ -16,6 +16,7 @@
   "strict": true,
   "trailing": true,
   "smarttabs": true,
+  "predef": ["-Promise"],
   "globals": {
     "afterEach": false,
     "beforeEach": false,

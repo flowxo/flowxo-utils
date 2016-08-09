@@ -1442,52 +1442,87 @@ describe('Utils', function() {
   });
 
   describe('Backoff', function() {
-    it('should generate exponential backoff delays, limited by the maximum', function() {
-      var backoff = new Utils.Backoff(1000, 10000);
-      expect(backoff.nextDelay()).toBe(1000);
-      expect(backoff.nextDelay()).toBe(2000);
-      expect(backoff.nextDelay()).toBe(4000);
-      expect(backoff.nextDelay()).toBe(8000);
-      expect(backoff.nextDelay()).toBe(10000);
-      expect(backoff.nextDelay()).toBe(10000);
-    });
+    describe('#nextDelay', function() {
+      it('should generate exponential backoff delays, limited by the maximum', function() {
+        var backoff = new Utils.Backoff(1000, 10000);
+        expect(backoff.nextDelay()).toBe(1000);
+        expect(backoff.nextDelay()).toBe(2000);
+        expect(backoff.nextDelay()).toBe(4000);
+        expect(backoff.nextDelay()).toBe(8000);
+        expect(backoff.nextDelay()).toBe(10000);
+        expect(backoff.nextDelay()).toBe(10000);
+      });
 
-    it('should randomise backoff delays', function() {
-      spyOn(Math, 'random').and.returnValue(0.5);
-      var backoff = new Utils.Backoff(1000, 10000, true);
-      expect(backoff.nextDelay()).toBeBetween(0, 500);
-      expect(backoff.nextDelay()).toBeBetween(0, 1000);
-      expect(backoff.nextDelay()).toBeBetween(0, 2000);
-      expect(backoff.nextDelay()).toBeBetween(0, 4000);
-      expect(backoff.nextDelay()).toBeBetween(0, 5000);
-      expect(backoff.nextDelay()).toBeBetween(0, 5000);
-    });
-
-    it('should retry operation until it succeeds', function(done) {
-      var backoff = new Utils.Backoff(0, 10);
-      var attempts = 0;
-      backoff.attempt(3, function(done) {
-        attempts++;
-        done(attempts < 3 ? 'ERROR' : null, 'result1', 'result2');
-      }, function(err, res1, res2) {
-        expect(err).toBeNull();
-        expect(res1).toBe('result1');
-        expect(res2).toBe('result2');
-        expect(attempts).toBe(3);
-        done();
+      it('should randomise backoff delays', function() {
+        spyOn(Math, 'random').and.returnValue(0.5);
+        var backoff = new Utils.Backoff(1000, 10000, true);
+        expect(backoff.nextDelay()).toBeBetween(0, 500);
+        expect(backoff.nextDelay()).toBeBetween(0, 1000);
+        expect(backoff.nextDelay()).toBeBetween(0, 2000);
+        expect(backoff.nextDelay()).toBeBetween(0, 4000);
+        expect(backoff.nextDelay()).toBeBetween(0, 5000);
+        expect(backoff.nextDelay()).toBeBetween(0, 5000);
       });
     });
 
-    it('should retry operation until the maximum number of attempts has been reached', function(done) {
-      var backoff = new Utils.Backoff(0, 10);
-      var attempts = 0;
-      backoff.attempt(3, function(done) {
-        attempts++;
-        done('ERROR');
-      }, function(err) {
-        expect(err).toBe('ERROR');
-        expect(attempts).toBe(3);
-        done();
+    describe('#attempt', function() {
+      it('should retry operation until it succeeds', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        backoff.attempt(3, function(done) {
+          attempts++;
+          done(attempts < 3 ? 'ERROR' : null, 'result1', 'result2');
+        }, function(err, res1, res2) {
+          expect(err).toBeNull();
+          expect(res1).toBe('result1');
+          expect(res2).toBe('result2');
+          expect(attempts).toBe(3);
+          done();
+        });
+      });
+
+      it('should retry operation until the maximum number of attempts has been reached', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        backoff.attempt(3, function(done) {
+          attempts++;
+          done('ERROR');
+        }, function(err) {
+          expect(err).toBe('ERROR');
+          expect(attempts).toBe(3);
+          done();
+        });
+      });
+    });
+
+    describe('#attemptAsync', function() {
+      it('should retry operation until it succeeds', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        backoff.attemptAsync(3, function() {
+          attempts++;
+          if(attempts < 3) {
+            throw new Error('ERROR');
+          }
+          return 'result';
+        }).then(function(res) {
+          expect(res).toBe('result');
+          expect(attempts).toBe(3);
+          done();
+        });
+      });
+
+      it('should retry operation until the maximum number of attempts has been reached', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        backoff.attemptAsync(3, function() {
+          attempts++;
+          throw new Error('ERROR');
+        }).catch(function(err) {
+          expect(err).toEqual(new Error('ERROR'));
+          expect(attempts).toBe(3);
+          done();
+        });
       });
     });
   });

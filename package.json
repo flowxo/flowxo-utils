@@ -31,16 +31,17 @@
   },
   "homepage": "https://github.com/flowxo/flowxo-utils",
   "devDependencies": {
-    "istanbul": "0.4.3",
+    "istanbul": "0.4.4",
     "jasmine": "^2.4.1",
     "jasmine-spec-reporter": "2.5.0",
     "jshint": "2.9.2",
     "jshint-stylish": "2.2.0",
-    "nodemon": "1.9.2",
+    "nodemon": "1.10.0",
     "opn-cli": "3.1.0"
   },
   "dependencies": {
-    "lodash": "^4.6.1",
-    "sugar-date": "^1.5.1"
+    "bluebird": "^3.4.1",
+    "lodash": "^4.14.2",
+    "sugar-date": "1.5.1"
   }
 }

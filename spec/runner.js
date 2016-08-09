@@ -4,7 +4,7 @@ var Jasmine = require('jasmine');
 var SpecReporter = require('jasmine-spec-reporter');
 
 var options = {
-  displayStacktrace: 'specs'
+  displayStacktrace: 'summary'
 };
 
 if(process.argv[2] === '--minimal') {
