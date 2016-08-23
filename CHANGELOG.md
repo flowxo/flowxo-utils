@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.1] - 2016-08-23
+### Added
+- `NonRetryableError` to backoff module, to support early aborting of backoff.
+
 ## [1.6.0] - 2016-08-09
 ### Added
 - Promise-style `attemptAsync` method to backoff module.
@@ -66,6 +70,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Initial release.
 
+[1.6.1]: https://github.com/flowxo/flowxo-utils/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/flowxo/flowxo-utils/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/flowxo/flowxo-utils/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/flowxo/flowxo-utils/compare/v1.5.0...v1.5.1
