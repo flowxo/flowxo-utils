@@ -1493,6 +1493,20 @@ describe('Utils', function() {
           done();
         });
       });
+
+      it('should not retry operation if a NonRetryableError is returned', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        var nonRetryableError = new Utils.Backoff.NonRetryableError();
+        backoff.attempt(3, function(done) {
+          attempts++;
+          done(nonRetryableError);
+        }, function(err) {
+          expect(err).toBe(nonRetryableError);
+          expect(attempts).toBe(1);
+          done();
+        });
+      });
     });
 
     describe('#attemptAsync', function() {
@@ -1521,6 +1535,20 @@ describe('Utils', function() {
         }).catch(function(err) {
           expect(err).toEqual(new Error('ERROR'));
           expect(attempts).toBe(3);
+          done();
+        });
+      });
+
+      it('should not retry operation if a NonRetryableError is returned', function(done) {
+        var backoff = new Utils.Backoff(0, 10);
+        var attempts = 0;
+        var nonRetryableError = new Utils.Backoff.NonRetryableError();
+        backoff.attemptAsync(3, function() {
+          attempts++;
+          throw nonRetryableError;
+        }).catch(function(err) {
+          expect(err).toBe(nonRetryableError);
+          expect(attempts).toBe(1);
           done();
         });
       });
