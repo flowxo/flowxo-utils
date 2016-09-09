@@ -1442,37 +1442,44 @@ describe('Utils', function() {
   });
 
   describe('Backoff', function() {
-    describe('#nextDelay', function() {
-      it('should generate exponential backoff delays, limited by the maximum', function() {
-        var backoff = new Utils.Backoff(1000, 10000);
-        expect(backoff.nextDelay()).toBe(1000);
-        expect(backoff.nextDelay()).toBe(2000);
-        expect(backoff.nextDelay()).toBe(4000);
-        expect(backoff.nextDelay()).toBe(8000);
-        expect(backoff.nextDelay()).toBe(10000);
-        expect(backoff.nextDelay()).toBe(10000);
-      });
-
-      it('should randomise backoff delays', function() {
-        spyOn(Math, 'random').and.returnValue(0.5);
-        var backoff = new Utils.Backoff(1000, 10000, true);
-        expect(backoff.nextDelay()).toBeBetween(0, 500);
-        expect(backoff.nextDelay()).toBeBetween(0, 1000);
-        expect(backoff.nextDelay()).toBeBetween(0, 2000);
-        expect(backoff.nextDelay()).toBeBetween(0, 4000);
-        expect(backoff.nextDelay()).toBeBetween(0, 5000);
-        expect(backoff.nextDelay()).toBeBetween(0, 5000);
-      });
-    });
-
-    describe('#attempt', function() {
-      it('should retry operation until it succeeds', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+    
+    describe('attempt', () => {
+      
+      it('should perform the operation once if it succeeds', (done) => {
         var attempts = 0;
-        backoff.attempt(3, function(done) {
+        var work = function(done) {
+          attempts++;
+          done(null, 'result1', 'result2');
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        Utils.Backoff.attempt(work, options, function(err, res1, res2) {
+          expect(err).toBeNull();
+          expect(res1).toBe('result1');
+          expect(res2).toBe('result2');
+          expect(attempts).toBe(1);
+          done();
+        });
+      });
+
+      it('should retry the operation with backoff if it fails', (done) => {
+        var attempts = 0;
+        var work = function(done) {
           attempts++;
           done(attempts < 3 ? 'ERROR' : null, 'result1', 'result2');
-        }, function(err, res1, res2) {
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        var start = Date.now();
+        Utils.Backoff.attempt(work, options, function(err, res1, res2) {
+          var duration = Date.now() - start;
+          expect(duration).toBeGreaterThan(29);
           expect(err).toBeNull();
           expect(res1).toBe('result1');
           expect(res2).toBe('result2');
@@ -1481,76 +1488,235 @@ describe('Utils', function() {
         });
       });
 
-      it('should retry operation until the maximum number of attempts has been reached', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+      it('should retry the operation with random backoff if it fails', (done) => {
         var attempts = 0;
-        backoff.attempt(3, function(done) {
+        var work = function(done) {
+          attempts++;
+          done(attempts < 3 ? 'ERROR' : null, 'result1', 'result2');
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          useRandom: true
+        };
+        var start = Date.now();
+        Utils.Backoff.attempt(work, options, function(err, res1, res2) {
+          var duration = Date.now() - start;
+          expect(duration).toBeGreaterThan(29);
+          expect(err).toBeNull();
+          expect(res1).toBe('result1');
+          expect(res2).toBe('result2');
+          expect(attempts).toBe(3);
+          done();
+        });
+      });
+
+      it('should fail the operation if the maximum attempts is reached', (done) => {
+        var attempts = 0;
+        var work = function(done) {
           attempts++;
           done('ERROR');
-        }, function(err) {
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        var start = Date.now();
+        Utils.Backoff.attempt(work, options, function(err) {
+          var duration = Date.now() - start;
+          expect(duration).toBeGreaterThan(29);
+          expect(err).toBe('ERROR');
+          expect(attempts).toBe(3);
+          done();
+        });
+      });
+      
+      it('should fail the operation if the maximum duration is reached', (done) => {
+        var attempts = 0;
+        var work = function(done) {
+          attempts++;
+          done('ERROR');
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 5,
+          maxDuration: 40
+        };
+        var start = Date.now();
+        Utils.Backoff.attempt(work, options, function(err) {
+          var duration = Date.now() - start;
+          expect(duration).toBeGreaterThan(29);
           expect(err).toBe('ERROR');
           expect(attempts).toBe(3);
           done();
         });
       });
 
-      it('should not retry operation if a NonRetryableError is returned', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+      it('should fail the operation if a NonRetryableError occurs', (done) => {
         var attempts = 0;
-        var nonRetryableError = new Utils.Backoff.NonRetryableError();
-        backoff.attempt(3, function(done) {
+        var nrtErr = new Utils.Backoff.NonRetryableError('ERROR');
+        var work = function(done) {
           attempts++;
-          done(nonRetryableError);
-        }, function(err) {
-          expect(err).toBe(nonRetryableError);
+          done(nrtErr);
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        Utils.Backoff.attempt(work, options, function(err) {
+          expect(err).toBe(nrtErr);
           expect(attempts).toBe(1);
           done();
         });
       });
     });
-
-    describe('#attemptAsync', function() {
-      it('should retry operation until it succeeds', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+    
+    describe('attemptAsync', () => {
+      
+      it('should perform the operation once if it succeeds', (done) => {
         var attempts = 0;
-        backoff.attemptAsync(3, function() {
+        var work = function() {
+          attempts++;
+          return 'result';
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .then((res) => {
+            expect(res).toBe('result');
+            expect(attempts).toBe(1);
+            done();
+          }, done.fail);
+      });
+
+      it('should retry the operation with backoff if it fails', (done) => {
+        var attempts = 0;
+        var work = function() {
           attempts++;
           if(attempts < 3) {
             throw new Error('ERROR');
           }
           return 'result';
-        }).then(function(res) {
-          expect(res).toBe('result');
-          expect(attempts).toBe(3);
-          done();
-        });
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        var start = Date.now();
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .then((res) => {
+            var duration = Date.now() - start;
+            expect(duration).toBeGreaterThan(29);
+            expect(res).toBe('result');
+            expect(attempts).toBe(3);
+            done();
+          }, done.fail);
       });
 
-      it('should retry operation until the maximum number of attempts has been reached', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+      it('should retry the operation with random backoff if it fails', (done) => {
         var attempts = 0;
-        backoff.attemptAsync(3, function() {
+        var work = function() {
+          attempts++;
+          if(attempts < 3) {
+            throw new Error('ERROR');
+          }
+          return 'result';
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          useRandom: true
+        };
+        var start = Date.now();
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .then((res) => {
+            var duration = Date.now() - start;
+            expect(duration).toBeGreaterThan(29);
+            expect(res).toBe('result');
+            expect(attempts).toBe(3);
+            done();
+          }, done.fail);
+      });
+
+      it('should fail the operation if the maximum attempts is reached', (done) => {
+        var attempts = 0;
+        var work = function() {
           attempts++;
           throw new Error('ERROR');
-        }).catch(function(err) {
-          expect(err).toEqual(new Error('ERROR'));
-          expect(attempts).toBe(3);
-          done();
-        });
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        var start = Date.now();
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .catch((err) => {
+            var duration = Date.now() - start;
+            expect(duration).toBeGreaterThan(29);
+            expect(err).toEqual(new Error('ERROR'));
+            expect(attempts).toBe(3);
+            done();
+          });
+      });
+      
+      it('should fail the operation if the maximum duration is reached', (done) => {
+        var attempts = 0;
+        var work = function() {
+          attempts++;
+          throw new Error('ERROR');
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 5,
+          maxDuration: 40
+        };
+        var start = Date.now();
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .catch((err) => {
+            var duration = Date.now() - start;
+            expect(duration).toBeGreaterThan(29);
+            expect(err).toEqual(new Error('ERROR'));
+            expect(attempts).toBe(3);
+            done();
+          });
       });
 
-      it('should not retry operation if a NonRetryableError is returned', function(done) {
-        var backoff = new Utils.Backoff(0, 10);
+      it('should fail the operation if a NonRetryableError occurs', (done) => {
         var attempts = 0;
-        var nonRetryableError = new Utils.Backoff.NonRetryableError();
-        backoff.attemptAsync(3, function() {
+        var nrtErr = new Utils.Backoff.NonRetryableError('ERROR');
+        var work = function() {
           attempts++;
-          throw nonRetryableError;
-        }).catch(function(err) {
-          expect(err).toBe(nonRetryableError);
-          expect(attempts).toBe(1);
-          done();
-        });
+          throw nrtErr;
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3
+        };
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .catch((err) => {
+            expect(err).toBe(nrtErr);
+            expect(attempts).toBe(1);
+            done();
+          });
       });
     });
   });
