@@ -1443,9 +1443,9 @@ describe('Utils', function() {
 
   describe('Backoff', function() {
     
-    describe('attempt', () => {
+    describe('attempt', function() {
       
-      it('should perform the operation once if it succeeds', (done) => {
+      it('should perform the operation once if it succeeds', function(done) {
         var attempts = 0;
         var work = function(done) {
           attempts++;
@@ -1465,7 +1465,7 @@ describe('Utils', function() {
         });
       });
 
-      it('should retry the operation with backoff if it fails', (done) => {
+      it('should retry the operation with backoff if it fails', function(done) {
         var attempts = 0;
         var work = function(done) {
           attempts++;
@@ -1488,7 +1488,7 @@ describe('Utils', function() {
         });
       });
 
-      it('should retry the operation with random backoff if it fails', (done) => {
+      it('should retry the operation with random backoff if it fails', function(done) {
         var attempts = 0;
         var work = function(done) {
           attempts++;
@@ -1512,7 +1512,7 @@ describe('Utils', function() {
         });
       });
 
-      it('should fail the operation if the maximum attempts is reached', (done) => {
+      it('should fail the operation if the maximum attempts is reached', function(done) {
         var attempts = 0;
         var work = function(done) {
           attempts++;
@@ -1533,7 +1533,7 @@ describe('Utils', function() {
         });
       });
       
-      it('should fail the operation if the maximum duration is reached', (done) => {
+      it('should fail the operation if the maximum duration is reached', function(done) {
         var attempts = 0;
         var work = function(done) {
           attempts++;
@@ -1555,7 +1555,7 @@ describe('Utils', function() {
         });
       });
 
-      it('should fail the operation if a NonRetryableError occurs', (done) => {
+      it('should fail the operation if a NonRetryableError occurs', function(done) {
         var attempts = 0;
         var nrtErr = new Utils.Backoff.NonRetryableError('ERROR');
         var work = function(done) {
@@ -1575,9 +1575,9 @@ describe('Utils', function() {
       });
     });
     
-    describe('attemptAsync', () => {
+    describe('attemptAsync', function() {
       
-      it('should perform the operation once if it succeeds', (done) => {
+      it('should perform the operation once if it succeeds', function(done) {
         var attempts = 0;
         var work = function() {
           attempts++;
@@ -1591,14 +1591,14 @@ describe('Utils', function() {
 
         Utils.Backoff
           .attemptAsync(work, options)
-          .then((res) => {
+          .then(function(res) {
             expect(res).toBe('result');
             expect(attempts).toBe(1);
             done();
           }, done.fail);
       });
 
-      it('should retry the operation with backoff if it fails', (done) => {
+      it('should retry the operation with backoff if it fails', function(done) {
         var attempts = 0;
         var work = function() {
           attempts++;
@@ -1615,7 +1615,7 @@ describe('Utils', function() {
         var start = Date.now();
         Utils.Backoff
           .attemptAsync(work, options)
-          .then((res) => {
+          .then(function(res) {
             var duration = Date.now() - start;
             expect(duration).toBeGreaterThan(29);
             expect(res).toBe('result');
@@ -1624,7 +1624,7 @@ describe('Utils', function() {
           }, done.fail);
       });
 
-      it('should retry the operation with random backoff if it fails', (done) => {
+      it('should retry the operation with random backoff if it fails', function(done) {
         var attempts = 0;
         var work = function() {
           attempts++;
@@ -1642,7 +1642,7 @@ describe('Utils', function() {
         var start = Date.now();
         Utils.Backoff
           .attemptAsync(work, options)
-          .then((res) => {
+          .then(function(res) {
             var duration = Date.now() - start;
             expect(duration).toBeGreaterThan(29);
             expect(res).toBe('result');
@@ -1651,7 +1651,7 @@ describe('Utils', function() {
           }, done.fail);
       });
 
-      it('should fail the operation if the maximum attempts is reached', (done) => {
+      it('should fail the operation if the maximum attempts is reached', function(done) {
         var attempts = 0;
         var work = function() {
           attempts++;
@@ -1665,7 +1665,7 @@ describe('Utils', function() {
         var start = Date.now();
         Utils.Backoff
           .attemptAsync(work, options)
-          .catch((err) => {
+          .catch(function(err) {
             var duration = Date.now() - start;
             expect(duration).toBeGreaterThan(29);
             expect(err).toEqual(new Error('ERROR'));
@@ -1674,7 +1674,7 @@ describe('Utils', function() {
           });
       });
       
-      it('should fail the operation if the maximum duration is reached', (done) => {
+      it('should fail the operation if the maximum duration is reached', function(done) {
         var attempts = 0;
         var work = function() {
           attempts++;
@@ -1689,7 +1689,7 @@ describe('Utils', function() {
         var start = Date.now();
         Utils.Backoff
           .attemptAsync(work, options)
-          .catch((err) => {
+          .catch(function(err) {
             var duration = Date.now() - start;
             expect(duration).toBeGreaterThan(29);
             expect(err).toEqual(new Error('ERROR'));
@@ -1698,7 +1698,7 @@ describe('Utils', function() {
           });
       });
 
-      it('should fail the operation if a NonRetryableError occurs', (done) => {
+      it('should fail the operation if a NonRetryableError occurs', function(done) {
         var attempts = 0;
         var nrtErr = new Utils.Backoff.NonRetryableError('ERROR');
         var work = function() {
@@ -1712,7 +1712,7 @@ describe('Utils', function() {
         };
         Utils.Backoff
           .attemptAsync(work, options)
-          .catch((err) => {
+          .catch(function(err) {
             expect(err).toBe(nrtErr);
             expect(attempts).toBe(1);
             done();
