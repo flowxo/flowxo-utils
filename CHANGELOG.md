@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.0] - 2016-09-15
+### Added
+- `nonRetryableErrors` option to backoff module. This allows you to use your own 'non-retryable' error classes to halt the backoff if necessary.
+
 ## [2.0.0] - 2016-09-09
 ### Added
 - `maxDuration` option to backoff module, to support abortion of backoff if the total operation time has or will exceed the `maxDuration` parameter on the next retry.
@@ -118,6 +122,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[2.1.0]: https://github.com/flowxo/flowxo-utils/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/flowxo/flowxo-utils/compare/v1.6.1...v2.0.0
 [1.6.1]: https://github.com/flowxo/flowxo-utils/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/flowxo/flowxo-utils/compare/v1.5.2...v1.6.0
