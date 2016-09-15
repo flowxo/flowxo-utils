@@ -1,6 +1,7 @@
 'use strict';
 
-var Utils = require('../lib/index.js'),
+var util = require('util'),
+    Utils = require('../lib/index.js'),
     _ = require('lodash');
 
 describe('Utils', function() {
@@ -1442,9 +1443,9 @@ describe('Utils', function() {
   });
 
   describe('Backoff', function() {
-    
+
     describe('attempt', function() {
-      
+
       it('should perform the operation once if it succeeds', function(done) {
         var attempts = 0;
         var work = function(done) {
@@ -1532,7 +1533,7 @@ describe('Utils', function() {
           done();
         });
       });
-      
+
       it('should fail the operation if the maximum duration is reached', function(done) {
         var attempts = 0;
         var work = function(done) {
@@ -1573,10 +1574,60 @@ describe('Utils', function() {
           done();
         });
       });
+
+      it('should fail the operation if a custom NonRetryableError occurs', function(done) {
+        function NonRetryableError() {}
+        util.inherits(NonRetryableError, Error);
+        var attempts = 0;
+        var nrtErr = new NonRetryableError('ERROR');
+        var work = function(done) {
+          attempts++;
+          done(nrtErr);
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          nonRetryableErrors: NonRetryableError
+        };
+        Utils.Backoff.attempt(work, options, function(err) {
+          expect(err).toBe(nrtErr);
+          expect(attempts).toBe(1);
+          done();
+        });
+      });
+
+      it('should fail the operation if one of multiple custom NonRetryableErrors occurs', function(done) {
+        function NonRetryableError1() {}
+        util.inherits(NonRetryableError1, Error);
+        function NonRetryableError2() {}
+        util.inherits(NonRetryableError2, Error);
+
+        var attempts = 0;
+        var nrtErr = new NonRetryableError1('ERROR');
+        var work = function(done) {
+          attempts++;
+          done(nrtErr);
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          nonRetryableErrors: [
+            NonRetryableError1,
+            NonRetryableError2
+          ]
+        };
+        Utils.Backoff.attempt(work, options, function(err) {
+          expect(err).toBe(nrtErr);
+          expect(attempts).toBe(1);
+          done();
+        });
+      });
     });
-    
+
     describe('attemptAsync', function() {
-      
+
       it('should perform the operation once if it succeeds', function(done) {
         var attempts = 0;
         var work = function() {
@@ -1673,7 +1724,7 @@ describe('Utils', function() {
             done();
           });
       });
-      
+
       it('should fail the operation if the maximum duration is reached', function(done) {
         var attempts = 0;
         var work = function() {
@@ -1709,6 +1760,60 @@ describe('Utils', function() {
           minDelay: 10,
           maxDelay: 20,
           maxAttempts: 3
+        };
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .catch(function(err) {
+            expect(err).toBe(nrtErr);
+            expect(attempts).toBe(1);
+            done();
+          });
+      });
+
+      it('should fail the operation if a custom NonRetryableError occurs', function(done) {
+        function NonRetryableError() {}
+        util.inherits(NonRetryableError, Error);
+        var attempts = 0;
+        var nrtErr = new NonRetryableError('ERROR');
+        var work = function() {
+          attempts++;
+          throw nrtErr;
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          nonRetryableErrors: NonRetryableError
+        };
+        Utils.Backoff
+          .attemptAsync(work, options)
+          .catch(function(err) {
+            expect(err).toBe(nrtErr);
+            expect(attempts).toBe(1);
+            done();
+          });
+      });
+
+      it('should fail the operation if one of multiple custom NonRetryableErrors occurs', function(done) {
+        function NonRetryableError1() {}
+        util.inherits(NonRetryableError1, Error);
+        function NonRetryableError2() {}
+        util.inherits(NonRetryableError2, Error);
+
+        var attempts = 0;
+        var nrtErr = new NonRetryableError1('ERROR');
+        var work = function() {
+          attempts++;
+          throw nrtErr;
+        };
+        var options = {
+          minDelay: 10,
+          maxDelay: 20,
+          maxAttempts: 3,
+          nonRetryableErrors: [
+            NonRetryableError1,
+            NonRetryableError2
+          ]
         };
         Utils.Backoff
           .attemptAsync(work, options)
