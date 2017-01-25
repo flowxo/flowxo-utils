@@ -2,7 +2,8 @@
 
 var util = require('util'),
     Utils = require('../lib/index.js'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    SugarDate = require('sugar-date').Date;
 
 describe('Utils', function() {
   it('should convert an array to a hashtable', function() {
@@ -776,14 +777,14 @@ describe('Utils', function() {
         valid: false,
         parsed: jasmine.any(Date)
       });
-      expect(parsedDate.parsed.isValid()).toBe(false);
+      expect(SugarDate.isValid(parsedDate.parsed)).toBe(false);
     };
 
     beforeEach(function() {
       epoch = new Date(0);
       spyOn(Utils, '_getFutureDate').and.callFake(function(str) {
-        var parsed = Date.future(str);
-        return parsed.isValid() ? epoch : parsed;
+        var parsed = SugarDate.create(str, {future: true});
+        return SugarDate.isValid(parsed) ? epoch : parsed;
       });
     });
 
@@ -919,17 +920,17 @@ describe('Utils', function() {
       });
 
       it('should not apply the offset modifier if it is 0', function() {
-        spyOn(epoch, 'addSeconds');
+        spyOn(SugarDate, 'addSeconds');
         Utils.parseDateTimeField('now');
-        expect(epoch.addSeconds)
+        expect(SugarDate.addSeconds)
           .not.toHaveBeenCalled();
       });
 
       it('should not apply the offset modifier if the date is invalid', function() {
-        epoch = new Date('invalid');
-        spyOn(epoch, 'addSeconds');
+        // epoch = new Date('invalid');
+        spyOn(SugarDate, 'addSeconds');
         Utils.parseDateTimeField('some_invalid_date +40h');
-        expect(epoch.addSeconds)
+        expect(SugarDate.addSeconds)
           .not.toHaveBeenCalled();
       });
 
@@ -940,10 +941,6 @@ describe('Utils', function() {
 
         it('should work with the YYYY-MM-DD HH-mmZZ format', function() {
           expectValidDate('2013-02-08 09:30-0100', epoch);
-        });
-
-        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z', function() {
-          expectValidDate('2013-02-08 09Z', epoch);
         });
 
         it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format', function() {
@@ -964,10 +961,6 @@ describe('Utils', function() {
 
         it('should work with the YYYY-MM-DD HH-mmZZ format and modifiers', function() {
           expectValidDate('2013-02-08 09:30-0100 +1d - 12h', new Date(43200000));
-        });
-
-        it('should work with the YYYY-MM-DD HHZZ format when the offset is Z and modifiers', function() {
-          expectValidDate('2013-02-08 09Z +1d - 12h', new Date(43200000));
         });
 
         it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format and modifiers', function() {
