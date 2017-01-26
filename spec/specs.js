@@ -800,7 +800,7 @@ describe('Utils', function() {
 
     it('should parse a datetime string', function() {
       expectValidDate('tomorrow', epoch);
-      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow');
+      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', undefined);
     });
 
     it('should return as invalid if no string is passed', function() {
@@ -815,10 +815,40 @@ describe('Utils', function() {
       expectInvalidDate('invalid');
     });
 
+    it('should handle a integer', function() {
+      epoch = new Date(1485410400000);
+      expectValidDate(1485410400000, new Date(1485410400000));
+    });
+
+    it('should handle a Date', function() {
+      epoch = new Date(1485410400000);
+      expectValidDate(new Date(1485410400000), new Date(1485410400000));
+    });
+
+    describe('Locales', function() {
+      it('parses a date withtout locale', function() {
+        Utils.parseDateTimeField('now +1d');
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', undefined);
+
+        epoch = SugarDate.create('1/11/2017', {fromUTC: true});
+        var d = Utils.parseDateTimeField('1/11/2017');
+        expect(d.parsed.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
+      });
+
+      it('parses a date with locale', function() {
+        Utils.parseDateTimeField('now +1d', 'en-GB');
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', 'en-GB');
+
+        epoch = SugarDate.create('1/11/2017', {fromUTC: true});
+        var d = Utils.parseDateTimeField('11/1/2017');
+        expect(d.parsed.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
+      });
+    });
+
     describe('Offset Modifiers', function() {
       it('should strip offset modifier from string to parse', function() {
         Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now');
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', undefined);
       });
 
       describe('Increment', function() {
