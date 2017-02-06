@@ -825,8 +825,19 @@ describe('Utils', function() {
       expectValidDate(new Date(1485410400000), new Date(1485410400000));
     });
 
+    it('should support newDateInternal as an option', function() {
+      epoch = SugarDate.create('2017-02-06 1am', {fromUTC: true});
+      var fn = function() {
+        var d = new Date();
+        d.setTime(d.getTime() + (60 * 60 * 1000));
+        return d;
+      };
+      var dateObj = Utils.parseDateTimeField('2017-02-06', {newDateInternal: fn});
+      expect(dateObj.parsed.toISOString()).toEqual('2017-02-06T01:00:00.000Z');
+    });
+
     describe('Locales', function() {
-      it('parses a date withtout locale', function() {
+      it('parses a date without locale', function() {
         Utils.parseDateTimeField('now +1d');
         expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {});
 
