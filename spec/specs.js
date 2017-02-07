@@ -765,7 +765,8 @@ describe('Utils', function() {
         type: 'date',
         input: input,
         valid: true,
-        parsed: expected
+        parsed: expected,
+        moment: jasmine.any(Object)
       });
     };
 
@@ -782,6 +783,7 @@ describe('Utils', function() {
 
     beforeEach(function() {
       epoch = new Date(0);
+      // spyOn(Utils, '_getFutureDate').and.callThrough();
       spyOn(Utils, '_getFutureDate').and.callFake(function(str) {
         var parsed = SugarDate.create(str, {future: true});
         return SugarDate.isValid(parsed) ? epoch : parsed;
@@ -800,7 +802,7 @@ describe('Utils', function() {
 
     it('should parse a datetime string', function() {
       expectValidDate('tomorrow', epoch);
-      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', {});
+      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', {locale: 'en', fromUTC: true});
     });
 
     it('should return as invalid if no string is passed', function() {
@@ -839,7 +841,7 @@ describe('Utils', function() {
     describe('Locales', function() {
       it('parses a date without locale', function() {
         Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en', fromUTC: true});
 
         epoch = SugarDate.create('1/11/2017', {fromUTC: true});
         var d = Utils.parseDateTimeField('1/11/2017');
@@ -848,18 +850,44 @@ describe('Utils', function() {
 
       it('parses a date with locale', function() {
         Utils.parseDateTimeField('now +1d', {locale: 'en-GB'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB', fromUTC: true});
 
         epoch = SugarDate.create('1/11/2017', {fromUTC: true});
         var d = Utils.parseDateTimeField('11/1/2017');
         expect(d.parsed.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
       });
+
+    });
+
+    describe('Timezones', function() {
+      it('parses a date without timezone', function() {
+        Utils.parseDateTimeField('1/11/2017 +1d');
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en', fromUTC: true});
+
+        epoch = SugarDate.create('1/12/2017', {fromUTC: true});
+        var d = Utils.parseDateTimeField('1/12/2017');
+        expect(d.moment.toISOString()).toEqual('2017-01-12T00:00:00.000Z');
+      });
+
+      it('parses a date with timezone', function() {
+        Utils.parseDateTimeField('1/11/2017 +1d', {timezone: 'America/New_York'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {
+          locale: 'en',
+          timezone: 'America/New_York',
+          fromUTC: false
+        });
+
+        epoch = SugarDate.create('1/12/2017');
+        var d = Utils.parseDateTimeField('1/12/2017', {timezone: 'America/New_York'});
+        expect(d.moment.toISOString()).toEqual('2017-01-12T05:00:00.000Z');
+      });
+
     });
 
     describe('Offset Modifiers', function() {
       it('should strip offset modifier from string to parse', function() {
         Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en', fromUTC: true});
       });
 
       describe('Increment', function() {
@@ -962,7 +990,7 @@ describe('Utils', function() {
 
       it('should not apply the offset modifier if it is 0', function() {
         spyOn(SugarDate, 'addSeconds');
-        Utils.parseDateTimeField('now');
+        // console.log(Utils.parseDateTimeField('now'));
         expect(SugarDate.addSeconds)
           .not.toHaveBeenCalled();
       });
