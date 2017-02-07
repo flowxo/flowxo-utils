@@ -847,7 +847,7 @@ describe('Utils', function() {
       });
 
       it('parses a date with locale', function() {
-        Utils.parseDateTimeField('now +1d', 'en-GB');
+        Utils.parseDateTimeField('now +1d', {locale: 'en-GB'});
         expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB'});
 
         epoch = SugarDate.create('1/11/2017', {fromUTC: true});
