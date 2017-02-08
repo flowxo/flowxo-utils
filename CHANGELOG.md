@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2017-02-08
+### Added
+- Timezone support for `Utils.parseDateTimeField()`
+- Locale support for `Utils.parseDateTimeField()`
+
+`Utils.parseDateTimeField(date [, Object])` takes a second optional parameter of object.
+- `timezone` defaults to `UTC`
+- `locale` defaults to `en`
+
+Usage:
+``` js
+Utils.parseDateTimeField('today at 3pm', {
+  timezone: 'Europe/London',
+  locale: 'en-GB'
+});
+```
+
+### Breaking change
+Upgraded Sugar Date module from 1.x to 2.x. See [Sugar breaking changes](https://github.com/andrewplummer/Sugar/blob/master/CAUTION.md#v200)
+
+`Date` object no longer gets extended with SugarDate by default. If you want to extend the `Date` object you must call `Utils.activateDateParser()`.
+
 ## [2.1.0] - 2016-09-15
 ### Added
 - `nonRetryableErrors` option to backoff module. This allows you to use your own 'non-retryable' error classes to halt the backoff if necessary.
@@ -122,6 +144,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[3.0.0]: https://github.com/flowxo/flowxo-utils/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/flowxo/flowxo-utils/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/flowxo/flowxo-utils/compare/v1.6.1...v2.0.0
 [1.6.1]: https://github.com/flowxo/flowxo-utils/compare/v1.6.0...v1.6.1
