@@ -1895,6 +1895,7 @@ describe('Utils', function() {
 
     it('should mimic the default winston logger', function() {
       var logger = Utils.Logger;
+      logger.on = true;
 
       logger.silly('some', 'data');
       expect(console.log).toHaveBeenCalledWith('some', 'data');
@@ -1919,6 +1920,35 @@ describe('Utils', function() {
 
       logger.log('error', 'some', 'data');
       expect(console.log).toHaveBeenCalledWith('some', 'data');
+    });
+
+    it('should not log when `on` is false', function() {
+      var logger = Utils.Logger;
+      logger.on = false;
+
+      logger.silly('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.debug('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.verbose('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.info('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.warn('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.error('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.log('info', 'some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.log('error', 'some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
     });
   });
 });
