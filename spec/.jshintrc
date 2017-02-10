@@ -26,6 +26,7 @@
     "jasmine": false,
     "spyOn": false,
     "xdescribe": false,
-    "xit": false
+    "xit": false,
+    "fail": false
   }
 }
