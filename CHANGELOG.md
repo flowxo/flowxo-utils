@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.2] - 2017-02-13
+
+### Fixes
+- Fixed an odd issue where regex was not working correctly causing dates to not be parsed correctly.
+
 ## [3.0.1] - 2017-02-13
 
 ### Fixes
@@ -151,6 +156,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[3.0.2]: https://github.com/flowxo/flowxo-utils/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/flowxo/flowxo-utils/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/flowxo/flowxo-utils/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/flowxo/flowxo-utils/compare/v2.0.0...v2.1.0
