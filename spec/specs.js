@@ -1160,6 +1160,11 @@ describe('Utils', function() {
           var expected = moment('1995-12-26T01:30:00+04:30').toDate();
           expectValidDate('1995-12-25T13:30:00+0430 +1d - 12h', expected);
         });
+
+        it('should work with timezone', function() {
+          var date = Utils.parseDateTimeField('2016-7-22T00:00:00+01:00', {timezone: 'Europe/London'});
+          expect(date.moment.toISOString()).toEqual('2016-07-21T23:00:00.000Z');
+        });
       });
     });
   });
