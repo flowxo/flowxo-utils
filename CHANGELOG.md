@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.1] - 2017-02-13
+
+### Fixes
+- Fixed issues with parsing relative dates and times.
+- The returned `.parsed` property from `parseDateTimeField` is completely backward compatible.
+- Improved tests. They now check the parsed date and not just if it parsed.
+
 ## [3.0.0] - 2017-02-08
 ### Added
 - Timezone support for `Utils.parseDateTimeField()`
@@ -144,6 +151,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[3.0.1]: https://github.com/flowxo/flowxo-utils/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/flowxo/flowxo-utils/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/flowxo/flowxo-utils/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/flowxo/flowxo-utils/compare/v1.6.1...v2.0.0
