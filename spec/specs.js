@@ -3,7 +3,8 @@
 var util = require('util'),
     Utils = require('../lib/index.js'),
     _ = require('lodash'),
-    SugarDate = require('sugar-date').Date;
+    SugarDate = require('sugar-date').Date,
+    moment = require('moment');
 
 describe('Utils', function() {
   it('should convert an array to a hashtable', function() {
@@ -756,18 +757,29 @@ describe('Utils', function() {
     });
   });
 
+  // Date/Times with timezones get tricky. Take your time to understand it.
+  // If it seems complicated it is. (Basically, there is a reason for the crazy tests)
   describe('Parse Date Time Field', function() {
-    var epoch;
+    // I have chosen this method vs SugarDate.is() because of the nice output for debugging.
+    function expectDatesToBeClose(value, expected, milliseconds) {
+      milliseconds = milliseconds || 100;
+      var diff = value.valueOf() - expected.valueOf();
+      if (diff > milliseconds || diff < (milliseconds * -1)) {
+        fail('Expected ' + value + ' to be close to ' + expected  + '.');
+      }
+    }
 
-    var expectValidDate = function(input, expected) {
-      var parsedDate = Utils.parseDateTimeField(input);
+    var expectValidDate = function(input, expected, options) {
+      var parsedDate = Utils.parseDateTimeField(input, options);
       expect(parsedDate).toEqual({
         type: 'date',
         input: input,
         valid: true,
-        parsed: expected,
+        parsed: jasmine.any(Object),
         moment: jasmine.any(Object)
       });
+      expectDatesToBeClose(parsedDate.moment.toDate(), expected);
+      expectDatesToBeClose(parsedDate.parsed, expected);
     };
 
     var expectInvalidDate = function(input) {
@@ -782,12 +794,7 @@ describe('Utils', function() {
     };
 
     beforeEach(function() {
-      epoch = new Date(0);
-      // spyOn(Utils, '_getFutureDate').and.callThrough();
-      spyOn(Utils, '_getFutureDate').and.callFake(function(str) {
-        var parsed = SugarDate.create(str, {future: true});
-        return SugarDate.isValid(parsed) ? epoch : parsed;
-      });
+      spyOn(Utils, '_getFutureDate').and.callThrough();
     });
 
     it('should return the date if one is passed', function() {
@@ -801,8 +808,8 @@ describe('Utils', function() {
     });
 
     it('should parse a datetime string', function() {
-      expectValidDate('tomorrow', epoch);
-      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', {locale: 'en', fromUTC: true});
+      expectValidDate('tomorrow', moment().add(1, 'days').startOf('day').toDate());
+      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', {locale: 'en'});
     });
 
     it('should return as invalid if no string is passed', function() {
@@ -818,68 +825,116 @@ describe('Utils', function() {
     });
 
     it('should handle a integer', function() {
-      epoch = new Date(1485410400000);
       expectValidDate(1485410400000, new Date(1485410400000));
     });
 
     it('should handle a Date', function() {
-      epoch = new Date(1485410400000);
       expectValidDate(new Date(1485410400000), new Date(1485410400000));
-    });
-
-    it('should support newDateInternal as an option', function() {
-      epoch = SugarDate.create('2017-02-06 1am', {fromUTC: true});
-      var fn = function() {
-        var d = new Date();
-        d.setTime(d.getTime() + (60 * 60 * 1000));
-        return d;
-      };
-      var dateObj = Utils.parseDateTimeField('2017-02-06', {newDateInternal: fn});
-      expect(dateObj.parsed.toISOString()).toEqual('2017-02-06T01:00:00.000Z');
     });
 
     describe('Locales', function() {
       it('parses a date without locale', function() {
-        Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en', fromUTC: true});
-
-        epoch = SugarDate.create('1/11/2017', {fromUTC: true});
-        var d = Utils.parseDateTimeField('1/11/2017');
-        expect(d.parsed.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
+        var d = Utils.parseDateTimeField('now');
+        var expected = moment().toDate();
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en'});
+        // We give a margin of 100ms
+        expectDatesToBeClose(d.parsed, expected);
+        expectDatesToBeClose(d.moment.toDate(), expected);
       });
 
       it('parses a date with locale', function() {
-        Utils.parseDateTimeField('now +1d', {locale: 'en-GB'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB', fromUTC: true});
+        var d = Utils.parseDateTimeField('11/1/2017', {locale: 'en-GB', timezone: 'UTC'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('11/1/2017', {locale: 'en-GB'});
+        expect(d.moment.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
 
-        epoch = SugarDate.create('1/11/2017', {fromUTC: true});
-        var d = Utils.parseDateTimeField('11/1/2017');
-        expect(d.parsed.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
+        // .parsed is expected to be in the timezone of the host machine.
+        expect(d.parsed).toEqual(moment('2017-01-11').toDate());
+
+        d = Utils.parseDateTimeField('11/1/2017', {locale: 'en', timezone: 'UTC'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('11/1/2017', {locale: 'en'});
+        expect(d.moment.toISOString()).toEqual('2017-11-01T00:00:00.000Z');
+
+        // .parsed is expected to be in the timezone of the host machine.
+        expect(d.parsed).toEqual(moment('2017-11-01').toDate());
       });
 
+      it('defaults locale when timezone is Europe/London', function() {
+        var d = Utils.parseDateTimeField('now', {timezone: 'Europe/London'});
+        var expected = moment().tz('Europe/London').toDate();
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB'});
+        expectDatesToBeClose(d.moment.toDate(), expected);
+
+        // .parsed is expected to be in the timezone of the host machine.
+        expectDatesToBeClose(d.parsed, moment().toDate());
+      });
     });
 
     describe('Timezones', function() {
       it('parses a date without timezone', function() {
-        Utils.parseDateTimeField('1/11/2017 +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en', fromUTC: true});
+        var d = Utils.parseDateTimeField('1/11/2017');
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en'});
+        expect(d.moment.toISOString()).toEqual(moment('2017-01-11').toISOString());
 
-        epoch = SugarDate.create('1/12/2017', {fromUTC: true});
-        var d = Utils.parseDateTimeField('1/12/2017');
-        expect(d.moment.toISOString()).toEqual('2017-01-12T00:00:00.000Z');
+        // .parsed is expected to be in the timezone of the host machine.
+        expect(d.parsed).toEqual(moment('2017-01-11').toDate());
       });
 
       it('parses a date with timezone', function() {
-        Utils.parseDateTimeField('1/11/2017 +1d', {timezone: 'America/New_York'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {
-          locale: 'en',
-          timezone: 'America/New_York',
-          fromUTC: false
-        });
+        var d = Utils.parseDateTimeField('1/11/2017', {timezone: 'America/New_York'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en'});
+        expect(d.moment.format()).toEqual('2017-01-11T00:00:00-05:00');
 
-        epoch = SugarDate.create('1/12/2017');
-        var d = Utils.parseDateTimeField('1/12/2017', {timezone: 'America/New_York'});
-        expect(d.moment.toISOString()).toEqual('2017-01-12T05:00:00.000Z');
+        // .parsed is expected to be in the timezone of the host machine.
+        expect(d.parsed).toEqual(moment('2017-01-11').toDate());
+      });
+
+      it('should assume the correct day', function() {
+        function checkTime(time, today, timezone) {
+          var testString = today ? 'today ' + time : time;
+          var d = Utils.parseDateTimeField(testString, {timezone: timezone});
+          var expectedMoment = moment.tz(time, 'HHa', timezone);
+          var expectedParsed = moment(time, 'HHa');
+
+          // This duplicates the future feature of SugarDate
+          if (!today && moment().tz(timezone).isAfter(expectedMoment)) {
+            expectedMoment.add(1, 'days');
+          }
+          if (!today && moment().isAfter(expectedParsed)) {
+            expectedParsed.add(1, 'days');
+          }
+          expect(d.moment.toDate()).toEqual(expectedMoment.toDate());
+
+          // .parsed is expected to be in the timezone of the host machine.
+          // TODO: Get this working!
+          expect(d.parsed).toEqual(expectedParsed.toDate());
+        }
+        [
+          '12am', '2am', '4am', '6am', '8am', '10am',
+          '12pm', '1pm', '3pm', '5pm', '7pm', '9pm', '11pm'
+        ].forEach(function(time) {
+          checkTime(time, false, 'America/Chicago');
+          checkTime(time, false, 'UTC');
+
+          // NOTE: Disable for now. There is a bug with SugarDate.
+          // checkTime(time, true, 'America/Chicago');
+          // checkTime(time, true, 'UTC');
+        });
+      });
+
+      it('it should honor the timezone when parsing a relative date', function() {
+
+        function checkRelative(timezone) {
+          var d = Utils.parseDateTimeField('in 5 minutes', {timezone: timezone});
+          var expectedMoment = moment().tz(timezone).add(5, 'minutes');
+
+          expectDatesToBeClose(d.moment.toDate(), expectedMoment.toDate());
+          // TODO: Get this working!
+          var expectedParsed = moment().add(5, 'minutes');
+          expectDatesToBeClose(d.parsed, expectedParsed.toDate());
+        }
+        checkRelative('America/Chicago');
+        checkRelative('Asia/Tokyo');
+        checkRelative('UTC');
       });
 
     });
@@ -887,67 +942,95 @@ describe('Utils', function() {
     describe('Offset Modifiers', function() {
       it('should strip offset modifier from string to parse', function() {
         Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en', fromUTC: true});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en'});
       });
 
       describe('Increment', function() {
         it('should increment datetime field by days offset modifier', function() {
-          expectValidDate('now +1d', new Date(86400000));
+          expectValidDate('now +1d', moment().add(1, 'days').toDate());
         });
 
         it('should increment datetime field by hours offset modifier', function() {
-          expectValidDate('now +30h', new Date(108000000));
+          expectValidDate('now +30h', moment().add(30, 'hours').toDate());
         });
 
         it('should increment datetime field by minutes offset modifier', function() {
-          expectValidDate('now +90m', new Date(5400000));
+          expectValidDate('now +90m', moment().add(90, 'minutes').toDate());
         });
 
         it('should increment datetime field by seconds offset modifier', function() {
-          expectValidDate('now +100s', new Date(100000));
+          expectValidDate('now +100s', moment().add(100, 'seconds').toDate());
         });
       });
 
       describe('Decrement', function() {
         it('should decrement datetime field by days offset modifier', function() {
-          expectValidDate('now -1d', new Date(-86400000));
+          expectValidDate('now -1d', moment().subtract(1, 'days').toDate());
         });
 
         it('should decrement datetime field by hours offset modifier', function() {
-          expectValidDate('now -30h', new Date(-108000000));
+          expectValidDate('now -30h', moment().subtract(30, 'hours').toDate());
         });
 
         it('should decrement datetime field by minutes offset modifier', function() {
-          expectValidDate('now -90m', new Date(-5400000));
+          expectValidDate('now -90m', moment().subtract(90, 'minutes').toDate());
         });
 
         it('should decrement datetime field by seconds offset modifier', function() {
-          expectValidDate('now -100s', new Date(-100000));
+          expectValidDate('now -100s', moment().subtract(100, 'seconds').toDate());
         });
       });
 
       it('should parse a complex offset modifier #1', function() {
-        expectValidDate('now +5d +4h +30m +15s', new Date(448215000));
+        var expected = moment()
+          .add(5, 'days')
+          .add(4, 'hours')
+          .add(30, 'minutes')
+          .add(15, 'seconds')
+          .toDate();
+        expectValidDate('now +5d +4h +30m +15s', expected);
       });
 
       it('should parse a complex offset modifier #2', function() {
-        expectValidDate('now -5d -4h -30m -15s', new Date(-448215000));
+        var expected = moment()
+          .subtract(5, 'days')
+          .subtract(4, 'hours')
+          .subtract(30, 'minutes')
+          .subtract(15, 'seconds')
+          .toDate();
+        expectValidDate('now -5d -4h -30m -15s', expected);
       });
 
       it('should parse a complex offset modifier #3', function() {
-        expectValidDate('now +3d -900m', new Date(205200000));
+        var expected = moment()
+          .add(3, 'days')
+          .subtract(900, 'minutes')
+          .toDate();
+        expectValidDate('now +3d -900m', expected);
       });
 
       it('should parse a complex offset modifier #4', function() {
-        expectValidDate('now +40h -30000s', new Date(114000000));
+        var expected = moment()
+          .add(40, 'hours')
+          .subtract(30000, 'seconds')
+          .toDate();
+        expectValidDate('now +40h -30000s', expected);
       });
 
       it('should parse a complex offset modifier #5', function() {
-        expectValidDate('now +40h -40h', new Date(0));
+        var expected = moment()
+          .add(40, 'hours')
+          .subtract(40, 'hours')
+          .toDate();
+        expectValidDate('now +40h -40h', expected);
       });
 
       it('should parse a complex offset modifier #6', function() {
-        expectValidDate('+40h now - 40h', new Date(0));
+        var expected = moment()
+          .add(40, 'hours')
+          .subtract(40, 'hours')
+          .toDate();
+        expectValidDate('+40h now - 40h', expected);
       });
 
       it('shouldn\'t allow two consecutive offset operators', function() {
@@ -959,44 +1042,68 @@ describe('Utils', function() {
       });
 
       it('should allow no whitespace before and after an offset modifier', function() {
-        expectValidDate('tomorrow+1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow+1d', expected);
       });
 
       it('should allow one space before an offset modifier', function() {
-        expectValidDate('tomorrow +1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow +1d', expected);
       });
 
       it('should allow one space after an offset modifier', function() {
-        expectValidDate('tomorrow+ 1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow+ 1d', expected);
       });
 
       it('should allow one space before and after an offset modifier', function() {
-        expectValidDate('tomorrow + 1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow + 1d', expected);
       });
 
       it('should allow arbitrary whitespace before an offset modifier', function() {
-        expectValidDate('tomorrow      +1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow      +1d', expected);
       });
 
       it('should allow arbitrary whitespace after an offset modifier', function() {
-        expectValidDate('tomorrow+      1d', new Date(86400000));
+        var expected = moment()
+          .add(2, 'days')
+          .startOf('day')
+          .toDate();
+        expectValidDate('tomorrow+      1d', expected);
       });
 
       it('should start from the current date if offset modifiers are only present', function() {
-        spyOn(Utils, '_getCurrentDate')
-          .and.returnValue(new Date(0));
-        expectValidDate('+1d', new Date(86400000));
+        var expected = moment()
+          .add(1, 'days')
+          .toDate();
+        expectValidDate('+1d', expected);
       });
 
       it('should not apply the offset modifier if it is 0', function() {
         spyOn(SugarDate, 'addSeconds');
-        // console.log(Utils.parseDateTimeField('now'));
+        Utils.parseDateTimeField('now');
         expect(SugarDate.addSeconds)
           .not.toHaveBeenCalled();
       });
 
       it('should not apply the offset modifier if the date is invalid', function() {
-        // epoch = new Date('invalid');
         spyOn(SugarDate, 'addSeconds');
         Utils.parseDateTimeField('some_invalid_date +40h');
         expect(SugarDate.addSeconds)
@@ -1005,43 +1112,53 @@ describe('Utils', function() {
 
       describe('Timezone offsets', function() {
         it('should work with the YYYY-MM-DD HH-mmZ format', function() {
-          expectValidDate('2013-02-08 09:30+07:00', epoch);
+          var expected = moment('2013-02-08T09:30:00+07:00').toDate();
+          expectValidDate('2013-02-08 09:30+07:00', expected);
         });
 
         it('should work with the YYYY-MM-DD HH-mmZZ format', function() {
-          expectValidDate('2013-02-08 09:30-0100', epoch);
+          var expected = moment('2013-02-08T09:30:00-01:00').toDate();
+          expectValidDate('2013-02-08 09:30-0100', expected);
         });
 
         it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format', function() {
-          expectValidDate('2013-02-08 09:30:26.123+07:00', epoch);
+          var expected = moment('2013-02-08T09:30:26.123+07:00').toDate();
+          expectValidDate('2013-02-08 09:30:26.123+07:00', expected);
         });
 
         it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format', function() {
-          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430', epoch);
+          var expected = moment('1995-12-25T13:30:00+04:30').toDate();
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430', expected);
         });
 
         it('should work with the YYYY-MM-DDTHH:mm:ssZZ format', function() {
-          expectValidDate('1995-12-25T13:30:00+0430', epoch);
+          var expected = moment('1995-12-25T13:30:00+04:30').toDate();
+          expectValidDate('1995-12-25T13:30:00+0430', expected);
         });
 
         it('should work with the YYYY-MM-DD HH-mmZ format and modifiers', function() {
-          expectValidDate('2013-02-08 09:30+07:00 +1d - 12h', new Date(43200000));
+          var expected = moment('2013-02-08T21:30:00+07:00').toDate();
+          expectValidDate('2013-02-08 09:30+07:00 +1d - 12h', expected);
         });
 
         it('should work with the YYYY-MM-DD HH-mmZZ format and modifiers', function() {
-          expectValidDate('2013-02-08 09:30-0100 +1d - 12h', new Date(43200000));
+          var expected = moment('2013-02-08T21:30:00-01:00').toDate();
+          expectValidDate('2013-02-08 09:30-0100 +1d - 12h', expected);
         });
 
         it('should work with the YYYY-MM-DD HH:mm:ss.SSSZ format and modifiers', function() {
-          expectValidDate('2013-02-08 09:30:26.123+07:00 +1d - 12h', new Date(43200000));
+          var expected = moment('2013-02-08T21:30:26.123+07:00').toDate();
+          expectValidDate('2013-02-08 09:30:26.123+07:00 +1d - 12h', expected);
         });
 
         it('should work with the ddd, DD MMM YYYY HH:mm:ss ZZ format and modifiers', function() {
-          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430 +1d - 12h', new Date(43200000));
+          var expected = moment('1995-12-26T01:30:00+04:30').toDate();
+          expectValidDate('Mon, 25 Dec 1995 13:30:00 +0430 +1d - 12h', expected);
         });
 
         it('should work with the YYYY-MM-DDTHH:mm:ssZZ format and modifiers', function() {
-          expectValidDate('1995-12-25T13:30:00+0430 +1d - 12h', new Date(43200000));
+          var expected = moment('1995-12-26T01:30:00+04:30').toDate();
+          expectValidDate('1995-12-25T13:30:00+0430 +1d - 12h', expected);
         });
       });
     });
@@ -1895,6 +2012,7 @@ describe('Utils', function() {
 
     it('should mimic the default winston logger', function() {
       var logger = Utils.Logger;
+      logger.on = true;
 
       logger.silly('some', 'data');
       expect(console.log).toHaveBeenCalledWith('some', 'data');
@@ -1919,6 +2037,35 @@ describe('Utils', function() {
 
       logger.log('error', 'some', 'data');
       expect(console.log).toHaveBeenCalledWith('some', 'data');
+    });
+
+    it('should not log when `on` is false', function() {
+      var logger = Utils.Logger;
+      logger.on = false;
+
+      logger.silly('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.debug('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.verbose('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.info('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.warn('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.error('some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.log('info', 'some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
+
+      logger.log('error', 'some', 'data');
+      expect(console.log).not.toHaveBeenCalled();
     });
   });
 });
