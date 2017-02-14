@@ -1169,6 +1169,27 @@ describe('Utils', function() {
     });
   });
 
+  describe('Apply Timezone Offset', function() {
+    it('should return a date in the correct offset', function() {
+      var d;
+
+      d = Utils.applyTzOffset(new Date('2017-02-14'), 'America/Chicago');
+      expect(d).toEqual(moment.tz('2017-02-14', 'America/Chicago').toDate());
+      expect(d.toISOString()).toEqual('2017-02-14T06:00:00.000Z');
+
+      d = Utils.applyTzOffset(new Date('2017-02-15'), 'America/New_York');
+      expect(d).toEqual(moment.tz('2017-02-15', 'America/New_York').toDate());
+      expect(d.toISOString()).toEqual('2017-02-15T05:00:00.000Z');
+
+      d = Utils.applyTzOffset(new Date('2017-02-16'), 'Europe/London');
+      expect(d).toEqual(moment.tz('2017-02-16', 'Europe/London').toDate());
+      expect(d.toISOString()).toEqual('2017-02-16T00:00:00.000Z');
+
+      d = Utils.applyTzOffset(new Date(), 'Europe/London');
+      expect(d).toEqual(moment().tz('Europe/London').toDate());
+    });
+  });
+
   describe('Parse Boolean Field', function() {
     var expectTrue = function(input) {
       expect(Utils.parseBooleanField(input)).toEqual({
