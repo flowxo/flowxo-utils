@@ -908,9 +908,8 @@ describe('Utils', function() {
           checkTime(time, false, 'America/Chicago');
           checkTime(time, false, 'UTC');
 
-          // NOTE: Disable for now. There is a bug with SugarDate.
-          // checkTime(time, true, 'America/Chicago');
-          // checkTime(time, true, 'UTC');
+          checkTime(time, true, 'America/Chicago');
+          checkTime(time, true, 'UTC');
         });
       });
 
