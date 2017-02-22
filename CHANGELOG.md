@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.1.0] - 2017-02-22
+
+### Changes
+#### Added `Utils.hasTZOffset()`
+Usage:
+``` js
+Utils.hasTZOffset('2017-02-22 13:26 -06:00') // true
+```
+
+#### Added `Utils.applyTzOffset()`
+This doesn't make JS dates timezone aware. It 'pretends' to by shifting the date.
+Usage:
+``` js
+Utils.applyTzOffset(new Date('2017-02-22'), 'America/Chicago'); // Returns a date shifted to the timezone specified
+```
+
+### Fixes
+- Worked around a bug in SugarDate when sometimes `today at 3pm` would get parsed as the next day at 3pm.
+
 ## [3.0.2] - 2017-02-13
 
 ### Fixes
@@ -156,6 +175,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[3.1.0]: https://github.com/flowxo/flowxo-utils/compare/v3.0.2...v3.1.0
 [3.0.2]: https://github.com/flowxo/flowxo-utils/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/flowxo/flowxo-utils/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/flowxo/flowxo-utils/compare/v2.1.0...v3.0.0

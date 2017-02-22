@@ -898,7 +898,6 @@ describe('Utils', function() {
           expect(d.moment.toDate()).toEqual(expectedMoment.toDate());
 
           // .parsed is expected to be in the timezone of the host machine.
-          // TODO: Get this working!
           expect(d.parsed).toEqual(expectedParsed.toDate());
         }
         [
@@ -920,7 +919,6 @@ describe('Utils', function() {
           var expectedMoment = moment().tz(timezone).add(5, 'minutes');
 
           expectDatesToBeClose(d.moment.toDate(), expectedMoment.toDate());
-          // TODO: Get this working!
           var expectedParsed = moment().add(5, 'minutes');
           expectDatesToBeClose(d.parsed, expectedParsed.toDate());
         }
