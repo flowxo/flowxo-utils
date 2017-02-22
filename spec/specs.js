@@ -809,7 +809,6 @@ describe('Utils', function() {
 
     it('should parse a datetime string', function() {
       expectValidDate('tomorrow', moment().add(1, 'days').startOf('day').toDate());
-      expect(Utils._getFutureDate).toHaveBeenCalledWith('tomorrow', {locale: 'en'});
     });
 
     it('should return as invalid if no string is passed', function() {
@@ -836,7 +835,6 @@ describe('Utils', function() {
       it('parses a date without locale', function() {
         var d = Utils.parseDateTimeField('now');
         var expected = moment().toDate();
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en'});
         // We give a margin of 100ms
         expectDatesToBeClose(d.parsed, expected);
         expectDatesToBeClose(d.moment.toDate(), expected);
@@ -844,14 +842,12 @@ describe('Utils', function() {
 
       it('parses a date with locale', function() {
         var d = Utils.parseDateTimeField('11/1/2017', {locale: 'en-GB', timezone: 'UTC'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('11/1/2017', {locale: 'en-GB'});
         expect(d.moment.toISOString()).toEqual('2017-01-11T00:00:00.000Z');
 
         // .parsed is expected to be in the timezone of the host machine.
         expect(d.parsed).toEqual(moment('2017-01-11').toDate());
 
         d = Utils.parseDateTimeField('11/1/2017', {locale: 'en', timezone: 'UTC'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('11/1/2017', {locale: 'en'});
         expect(d.moment.toISOString()).toEqual('2017-11-01T00:00:00.000Z');
 
         // .parsed is expected to be in the timezone of the host machine.
@@ -861,7 +857,6 @@ describe('Utils', function() {
       it('defaults locale when timezone is Europe/London', function() {
         var d = Utils.parseDateTimeField('now', {timezone: 'Europe/London'});
         var expected = moment().tz('Europe/London').toDate();
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en-GB'});
         expectDatesToBeClose(d.moment.toDate(), expected);
 
         // .parsed is expected to be in the timezone of the host machine.
@@ -871,8 +866,7 @@ describe('Utils', function() {
 
     describe('Timezones', function() {
       it('parses a date without timezone', function() {
-        var d = Utils.parseDateTimeField('1/11/2017');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en'});
+        var d = Utils.parseDateTimeField('2017-01-11');
         expect(d.moment.toISOString()).toEqual(moment('2017-01-11').toISOString());
 
         // .parsed is expected to be in the timezone of the host machine.
@@ -881,7 +875,6 @@ describe('Utils', function() {
 
       it('parses a date with timezone', function() {
         var d = Utils.parseDateTimeField('1/11/2017', {timezone: 'America/New_York'});
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('1/11/2017', {locale: 'en'});
         expect(d.moment.format()).toEqual('2017-01-11T00:00:00-05:00');
 
         // .parsed is expected to be in the timezone of the host machine.
@@ -915,9 +908,8 @@ describe('Utils', function() {
           checkTime(time, false, 'America/Chicago');
           checkTime(time, false, 'UTC');
 
-          // NOTE: Disable for now. There is a bug with SugarDate.
-          // checkTime(time, true, 'America/Chicago');
-          // checkTime(time, true, 'UTC');
+          checkTime(time, true, 'America/Chicago');
+          checkTime(time, true, 'UTC');
         });
       });
 
@@ -942,7 +934,7 @@ describe('Utils', function() {
     describe('Offset Modifiers', function() {
       it('should strip offset modifier from string to parse', function() {
         Utils.parseDateTimeField('now +1d');
-        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', {locale: 'en'});
+        expect(Utils._getFutureDate).toHaveBeenCalledWith('now', jasmine.any(Object));
       });
 
       describe('Increment', function() {
@@ -1165,6 +1157,27 @@ describe('Utils', function() {
           var date = Utils.parseDateTimeField('2016-7-22T00:00:00+01:00', {timezone: 'Europe/London'});
           expect(date.moment.toISOString()).toEqual('2016-07-21T23:00:00.000Z');
         });
+      });
+    });
+
+    describe('Apply Timezone Offset', function() {
+      it('should return a date in the correct offset', function() {
+        var d;
+
+        d = Utils.applyTzOffset(new Date('2017-02-14'), 'America/Chicago');
+        expect(d).toEqual(moment.tz('2017-02-14', 'America/Chicago').toDate());
+        expect(d.toISOString()).toEqual('2017-02-14T06:00:00.000Z');
+
+        d = Utils.applyTzOffset(new Date('2017-02-15'), 'America/New_York');
+        expect(d).toEqual(moment.tz('2017-02-15', 'America/New_York').toDate());
+        expect(d.toISOString()).toEqual('2017-02-15T05:00:00.000Z');
+
+        d = Utils.applyTzOffset(new Date('2017-02-16'), 'Europe/London');
+        expect(d).toEqual(moment.tz('2017-02-16', 'Europe/London').toDate());
+        expect(d.toISOString()).toEqual('2017-02-16T00:00:00.000Z');
+
+        d = Utils.applyTzOffset(new Date(), 'Europe/London');
+        expectDatesToBeClose(d, moment().tz('Europe/London').toDate());
       });
     });
   });
