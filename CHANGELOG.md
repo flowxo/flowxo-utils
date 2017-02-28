@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.2.0] - 2017-02-28
+
+### Changes
+#### Added `limit` to `getFlattenedFields() options`
+This limits length of the array returned
+
+Usage:
+``` js
+Utils.getFlattenedFields(Object|Array, {limit: 100});
+```
+
 ## [3.1.0] - 2017-02-22
 
 ### Changes
@@ -175,6 +186,7 @@ backoff.attemptAsync(operation, options).then(res => {
 ### Added
 - Initial release.
 
+[3.2.0]: https://github.com/flowxo/flowxo-utils/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/flowxo/flowxo-utils/compare/v3.0.2...v3.1.0
 [3.0.2]: https://github.com/flowxo/flowxo-utils/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/flowxo/flowxo-utils/compare/v3.0.0...v3.0.1
