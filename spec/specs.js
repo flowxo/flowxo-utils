@@ -364,6 +364,47 @@ describe('Utils', function() {
       }]);
     });
 
+    it('should return flattened fields and honor the limit option', function() {
+      var data = {
+        some: [
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'},
+          {key: 'value'}
+        ]
+      };
+
+      var actual = Utils.getFlattenedFields(data, {limit: 5});
+      expect(actual).toEqual([{
+        key: 'some_+_key',
+        label: 'Some key',
+        value: undefined
+      }, {
+        key: 'some__0__key',
+        label: 'Some 0 key',
+        value: 'value'
+      }, {
+        key: 'some__1__key',
+        label: 'Some 1 key',
+        value: 'value'
+      }, {
+        key: 'some__2__key',
+        label: 'Some 2 key',
+        value: 'value'
+      }, {
+        key: 'some__3__key',
+        label: 'Some 3 key',
+        value: 'value'
+      }]);
+    });
+
     it('should return flattened fields for an object with a custom delimiter', function() {
       var data = {
         some: {
